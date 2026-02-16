@@ -1958,7 +1958,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       
       - name: Restore dependencies
         run: dotnet restore
@@ -2000,7 +2000,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       
       - name: Run integration tests
         run: dotnet test --filter "Category=Integration" --logger "trx;LogFileName=integration-tests.trx"
@@ -2029,7 +2029,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       
       - name: Install Playwright
         run: |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete guide for integrating PayPal into .NET 8.0+ payment systems. Covers REST API v2 (Orders), Checkout SDK, Subscriptions, Payouts, and Disputes.
+Complete guide for integrating PayPal into .NET 10.0+ payment systems. Covers REST API v2 (Orders), Checkout SDK, Subscriptions, Payouts, and Disputes.
 
 ## Table of Contents
 

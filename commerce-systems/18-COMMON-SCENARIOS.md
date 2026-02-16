@@ -2,7 +2,7 @@
 
 ## Overview
 
-Step-by-step implementation guides for the most common real-world payment scenarios in .NET 8.0+ commerce systems: subscription billing, marketplace/split payments, pre-authorization and capture, cart checkout, invoice payments, and more.
+Step-by-step implementation guides for the most common real-world payment scenarios in .NET 10.0+ commerce systems: subscription billing, marketplace/split payments, pre-authorization and capture, cart checkout, invoice payments, and more.
 
 ## Table of Contents
 

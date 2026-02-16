@@ -472,7 +472,7 @@ public class PaymentService
 <!-- PaymentService.Contracts NuGet package -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <PackageId>Commerce.PaymentService.Contracts</PackageId>
     <Version>2.1.0</Version>
   </PropertyGroup>
