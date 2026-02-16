@@ -1,0 +1,54 @@
+# Summary
+
+[Introduction](introduction.md)
+
+# Commerce Systems
+
+- [Overview](commerce-systems/README.md)
+- [Payment Integration Overview](commerce-systems/00-OVERVIEW.md)
+- [Architecture Patterns](commerce-systems/01-ARCHITECTURE-PATTERNS.md)
+- [Repository Pattern](commerce-systems/02-REPOSITORY-PATTERN.md)
+- [Strategy Pattern](commerce-systems/03-STRATEGY-PATTERN.md)
+- [Webhook Patterns](commerce-systems/04-WEBHOOK-PATTERNS.md)
+- [Error Handling](commerce-systems/05-ERROR-HANDLING.md)
+- [Database Design](commerce-systems/06-DATABASE-DESIGN.md)
+- [Design Patterns](commerce-systems/07-DESIGN-PATTERNS.md)
+- [Performance Optimization](commerce-systems/08-PERFORMANCE-OPTIMIZATION.md)
+- [Cloud-Native AWS](commerce-systems/09-CLOUD-NATIVE-AWS.md)
+- [Multi-Cloud Alternatives](commerce-systems/10-MULTI-CLOUD-ALTERNATIVES.md)
+- [CQRS & Event Sourcing](commerce-systems/11-CQRS-EVENT-SOURCING.md)
+- [Tax & Multi-Provider](commerce-systems/12-TAX-AND-MULTI-PROVIDER.md)
+- [Test Cards & Sandbox](commerce-systems/13-TEST-CARDS-SANDBOX.md)
+- [E2E & Integration Testing](commerce-systems/14-E2E-INTEGRATION-TESTING.md)
+- [Security Patterns & Practices](commerce-systems/15-SECURITY-PATTERNS-PRACTICES.md)
+- [Stripe Integration](commerce-systems/16-STRIPE-INTEGRATION.md)
+- [PayPal Integration](commerce-systems/17-PAYPAL-INTEGRATION.md)
+- [Common Scenarios](commerce-systems/18-COMMON-SCENARIOS.md)
+- [Monitoring & Alerting](commerce-systems/19-MONITORING-ALERTING.md)
+- [Kubernetes Deployment](commerce-systems/20-KUBERNETES-DEPLOYMENT.md)
+- [Cost Optimization](commerce-systems/21-COST-OPTIMIZATION.md)
+- [Event-Driven Architecture](commerce-systems/22-EVENT-DRIVEN-ARCHITECTURE.md)
+- [Microservices Patterns](commerce-systems/23-MICROSERVICES-PATTERNS.md)
+- [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
+- [Learning Path](commerce-systems/LEARNING-PATH.md)
+
+# Kubernetes
+
+- [Overview](kubernetes/README.md)
+- [Kubernetes Fundamentals](kubernetes/00-OVERVIEW.md)
+- [Services](kubernetes/01-SERVICES.md)
+- [AWS EKS](kubernetes/02-CLOUD-SERVICES-AWS-EKS.md)
+- [Oracle OKE](kubernetes/03-CLOUD-SERVICES-OKE.md)
+- [Azure AKS](kubernetes/04-CLOUD-SERVICES-AKS.md)
+- [Local Setup (kind & Minikube)](kubernetes/05-LOCAL-SETUP-KIND-MINIKUBE.md)
+- [Manifests](kubernetes/06-MANIFESTS.md)
+- [CRDs & Operators](kubernetes/07-CRDS-AND-OPERATORS.md)
+- [Controllers](kubernetes/08-CONTROLLERS.md)
+- [Networking](kubernetes/09-NETWORKING.md)
+- [Best Practices & Patterns](kubernetes/10-BEST-PRACTICES-AND-PATTERNS.md)
+- [Anti-Patterns](kubernetes/11-ANTI-PATTERNS.md)
+- [Learning Path](kubernetes/LEARNING-PATH.md)
+
+# Observability
+
+- [Overview](observability/README.md)
