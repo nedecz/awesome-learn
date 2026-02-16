@@ -30,6 +30,7 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [21-COST-OPTIMIZATION](21-COST-OPTIMIZATION.md) | Fee optimization, smart routing, infra cost | When reducing payment and infra costs |
 | [22-EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) | Domain events, Outbox, Saga, message brokers | When building event-driven payment flows |
 | [23-MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) | Service decomposition, API gateway, contracts | When splitting into microservices |
+| [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | Payment methods, flows, and multi-provider comparison | When choosing or adding payment methods |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -317,6 +318,7 @@ The following topics were identified during the initial documentation effort but
 | Cost Optimization | ✅ Complete | [21-COST-OPTIMIZATION](21-COST-OPTIMIZATION.md) |
 | Event-Driven Architecture (dedicated guide) | ✅ Complete | [22-EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) |
 | Microservices Patterns (dedicated guide) | ✅ Complete | [23-MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) |
+| Payment Methods & Flows (dedicated guide) | ✅ Complete | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) |
 
 > All planned topics have been promoted to dedicated documents.
 
