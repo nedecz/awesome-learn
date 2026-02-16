@@ -25,6 +25,9 @@ We welcome contributions! If you have learning materials, guides, or notes that 
 - **Is running GitHub Pages free?**  
   For **public repositories**, yes. For **private repositories**, GitHub Pages availability depends on your plan (typically paid plans), and the published site is still public.
 
+- **If I have to pay for private repo Pages, can I disable it?**  
+  Yes. Go to **Repository Settings → Pages** and unpublish/disable the Pages source.
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
