@@ -23,7 +23,7 @@ We welcome contributions! If you have learning materials, guides, or notes that 
 ## ❓ FAQ
 
 - **Is running GitHub Pages free?**  
-  Yes—GitHub Pages hosting is free, especially for public repositories (subject to GitHub's usage limits and terms).
+  For **public repositories**, yes. For **private repositories**, GitHub Pages availability depends on your plan (typically paid plans), and the published site is still public.
 
 ## 📝 License
 
