@@ -167,6 +167,7 @@ public class Payment
 | 2 | [17-PAYPAL-INTEGRATION](17-PAYPAL-INTEGRATION.md) | Orders API, Subscriptions, Payouts |
 | 3 | [04-WEBHOOK-PATTERNS](04-WEBHOOK-PATTERNS.md) | Signature verification, idempotency, async processing |
 | 4 | [18-COMMON-SCENARIOS](18-COMMON-SCENARIOS.md) | Cart checkout, recurring billing, split payments |
+| 5 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | Cards, wallets, bank transfers, BNPL, regional methods |
 
 ### Hands-On Exercises
 
@@ -378,6 +379,7 @@ These documents cover niche topics. Read them as your project requires:
 |----------|-------------|
 | [12-TAX-AND-MULTI-PROVIDER](12-TAX-AND-MULTI-PROVIDER.md) | When you need tax calculation or multi-gateway routing |
 | [07-DESIGN-PATTERNS](07-DESIGN-PATTERNS.md) | Full 39-pattern reference — revisit as you encounter specific problems |
+| [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | When adding new payment methods or expanding to new regions |
 
 ---
 
@@ -451,3 +453,4 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 21 | [COST-OPTIMIZATION](21-COST-OPTIMIZATION.md) | 6 |
 | 22 | [EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) | 5 |
 | 23 | [MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) | 5 |
+| 24 | [PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | 3, 7 |
