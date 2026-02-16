@@ -1,0 +1,12 @@
+site_name: Awesome Learn
+site_description: Learning resources for commerce systems, Kubernetes, and observability
+repo_url: https://github.com/nedecz/awesome-learn
+docs_dir: docs
+site_dir: site
+theme:
+  name: mkdocs
+nav:
+  - Home: index.md
+  - Commerce Systems: commerce-systems/README.md
+  - Kubernetes: kubernetes/README.md
+  - Observability: observability/README.md
