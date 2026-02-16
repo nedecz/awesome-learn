@@ -28,6 +28,9 @@ We welcome contributions! If you have learning materials, guides, or notes that 
 - **If I have to pay for private repo Pages, can I disable it?**  
   Yes. Go to **Repository Settings → Pages** and unpublish/disable the Pages source.
 
+- **How do I disable GitHub Actions for this repository?**  
+  Go to **Repository Settings → Actions → General** and set Actions permissions to disable GitHub Actions for this repository.
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
