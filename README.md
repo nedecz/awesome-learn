@@ -26,6 +26,17 @@ To keep access limited to collaborators only, keep the repository private and in
 
 We welcome contributions! If you have learning materials, guides, or notes that could help others, please see our [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to add them.
 
+## ❓ FAQ
+
+- **Is running GitHub Pages free?**  
+  For **public repositories**, yes. For **private repositories**, GitHub Pages availability depends on your plan (typically paid plans), and the published site is still public.
+
+- **If I have to pay for private repo Pages, can I disable it?**  
+  Yes. Go to **Repository Settings → Pages** and unpublish/disable the Pages source.
+
+- **How do I disable GitHub Actions for this repository?**  
+  Go to **Repository Settings → Actions → General** and set Actions permissions to disable GitHub Actions for this repository.
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
