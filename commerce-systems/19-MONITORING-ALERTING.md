@@ -2,7 +2,7 @@
 
 ## Overview
 
-Payment systems demand exceptional observability. A missed alert on rising error rates or latency can mean lost revenue and customer trust. This guide covers metrics, structured logging, distributed tracing, health checks, dashboards, and alert rules for .NET 8.0+ payment applications.
+Payment systems demand exceptional observability. A missed alert on rising error rates or latency can mean lost revenue and customer trust. This guide covers metrics, structured logging, distributed tracing, health checks, dashboards, and alert rules for .NET 10.0+ payment applications.
 
 ## Table of Contents
 

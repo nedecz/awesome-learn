@@ -2,7 +2,7 @@
 
 ## Overview
 
-Comprehensive guide for integrating Stripe into .NET 8.0+ payment systems. Covers Payment Intents, Checkout Sessions, Customer management, Subscriptions, Connect (marketplace payments), and production best practices.
+Comprehensive guide for integrating Stripe into .NET 10.0+ payment systems. Covers Payment Intents, Checkout Sessions, Customer management, Subscriptions, Connect (marketplace payments), and production best practices.
 
 ## Table of Contents
 

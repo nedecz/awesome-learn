@@ -351,7 +351,7 @@ When stuck:
 ## 🎓 Prerequisites
 
 To use this documentation effectively, you should understand:
-- C# and .NET (8.0+)
+- C# and .NET (10.0+)
 - Dependency Injection
 - Async/await patterns
 - REST APIs

@@ -87,7 +87,7 @@ commerce-systems/
 ## Quick Start
 
 ### Prerequisites
-- .NET 8.0 or higher
+- .NET 10.0 or higher
 - Understanding of dependency injection
 - Basic knowledge of REST APIs
 - Payment provider account (Stripe recommended for learning)

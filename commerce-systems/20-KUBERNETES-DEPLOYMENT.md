@@ -2,7 +2,7 @@
 
 ## Overview
 
-Deploying payment services on Kubernetes requires special attention to security (PCI DSS), zero-downtime deployments, secret management, and resilience. This guide covers production-grade Kubernetes manifests, Helm charts, and operational patterns for .NET 8.0+ payment systems.
+Deploying payment services on Kubernetes requires special attention to security (PCI DSS), zero-downtime deployments, secret management, and resilience. This guide covers production-grade Kubernetes manifests, Helm charts, and operational patterns for .NET 10.0+ payment systems.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ Deploying payment services on Kubernetes requires special attention to security 
 
 ```dockerfile
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
 
 COPY *.csproj .
@@ -35,7 +35,7 @@ COPY . .
 RUN dotnet publish -c Release -o /app --no-restore
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 WORKDIR /app
 
 # Security: run as non-root
@@ -634,7 +634,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
       - run: dotnet test --configuration Release
 
   build-and-push:

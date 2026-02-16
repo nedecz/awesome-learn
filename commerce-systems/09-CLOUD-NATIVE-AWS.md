@@ -1320,9 +1320,9 @@ public class PaymentSystemStack : Stack
         // Lambda Functions
         var paymentApiLambda = new Function(this, "PaymentApiLambda", new FunctionProps
         {
-            Runtime = Runtime.DOTNET_6,
+            Runtime = Runtime.DOTNET_10,
             Handler = "PaymentApi::PaymentApi.Handler::HandleAsync",
-            Code = Code.FromAsset("./src/PaymentApi/bin/Release/net6.0/publish"),
+            Code = Code.FromAsset("./src/PaymentApi/bin/Release/net10.0/publish"),
             Environment = new Dictionary<string, string>
             {
                 ["TABLE_NAME"] = paymentsTable.TableName,
