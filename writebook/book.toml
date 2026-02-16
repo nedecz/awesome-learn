@@ -1,0 +1,13 @@
+[book]
+title = "Awesome Learn"
+authors = ["nedecz"]
+description = "A curated collection of learning resources for Commerce Systems, Kubernetes, and Observability"
+src = "src"
+language = "en"
+
+[build]
+build-dir = "book"
+
+[output.html]
+git-repository-url = "https://github.com/nedecz/awesome-learn"
+edit-url-template = "https://github.com/nedecz/awesome-learn/edit/main/{path}"

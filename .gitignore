@@ -21,5 +21,8 @@ Thumbs.db
 # MkDocs build output
 site/
 
+# mdBook build output
+writebook/book/
+
 # Node.js
 node_modules/

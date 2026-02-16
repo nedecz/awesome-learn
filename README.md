@@ -22,6 +22,26 @@ This repository includes an MkDocs configuration (`mkdocs.yml`) and a GitHub Act
 
 To keep access limited to collaborators only, keep the repository private and in GitHub Pages settings use the private/access-restricted visibility options available to your plan.
 
+## 📖 Writebook (mdBook)
+
+This repository also includes an [mdBook](https://rust-lang.github.io/mdBook/) configuration in the `writebook/` directory that organizes all markdown content into a navigable, book-style format.
+
+### Build the book locally
+
+```bash
+# Install mdBook (https://rust-lang.github.io/mdBook/guide/installation.html)
+cargo install mdbook
+
+# Build the book
+cd writebook
+mdbook build
+
+# Or serve it locally with live reload
+mdbook serve --open
+```
+
+The generated book will be in `writebook/book/`.
+
 ## 🤝 Contributing
 
 We welcome contributions! If you have learning materials, guides, or notes that could help others, please see our [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to add them.
