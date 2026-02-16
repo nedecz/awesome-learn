@@ -8,5 +8,19 @@ theme:
 nav:
   - Home: index.md
   - Commerce Systems: commerce-systems/README.md
-  - Kubernetes: kubernetes/README.md
+  - Kubernetes:
+    - Overview: kubernetes/README.md
+    - Fundamentals: kubernetes/00-OVERVIEW.md
+    - Services: kubernetes/01-SERVICES.md
+    - AWS EKS: kubernetes/02-CLOUD-SERVICES-AWS-EKS.md
+    - Oracle OKE: kubernetes/03-CLOUD-SERVICES-OKE.md
+    - Azure AKS: kubernetes/04-CLOUD-SERVICES-AKS.md
+    - Local Setup: kubernetes/05-LOCAL-SETUP-KIND-MINIKUBE.md
+    - Manifests: kubernetes/06-MANIFESTS.md
+    - CRDs & Operators: kubernetes/07-CRDS-AND-OPERATORS.md
+    - Controllers: kubernetes/08-CONTROLLERS.md
+    - Networking: kubernetes/09-NETWORKING.md
+    - Best Practices & Patterns: kubernetes/10-BEST-PRACTICES-AND-PATTERNS.md
+    - Anti-Patterns: kubernetes/11-ANTI-PATTERNS.md
+    - Learning Path: kubernetes/LEARNING-PATH.md
   - Observability: observability/README.md
