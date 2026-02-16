@@ -20,6 +20,11 @@ This repository is organized into the following learning areas:
 
 We welcome contributions! If you have learning materials, guides, or notes that could help others, please see our [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to add them.
 
+## ❓ FAQ
+
+- **Is running GitHub Pages free?**  
+  Yes—GitHub Pages hosting is free, especially for public repositories (subject to GitHub's usage limits and terms).
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
