@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "awesome-learn",
+  "compatibility_date": "2026-02-16",
+  "build": {
+    "command": "pip install mkdocs && mkdocs build"
+  },
+  "assets": {
+    "directory": "./site"
+  }
+}

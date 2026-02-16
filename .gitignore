@@ -20,3 +20,6 @@ Thumbs.db
 
 # MkDocs build output
 site/
+
+# Node.js
+node_modules/
