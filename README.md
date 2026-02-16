@@ -16,6 +16,12 @@ This repository is organized into the following learning areas:
 2. Each directory contains a README with an overview and resources
 3. Feel free to add your own learning materials following our [contributing guidelines](./CONTRIBUTING.md)
 
+## 🌐 Documentation Site (GitHub Pages + MkDocs)
+
+This repository includes an MkDocs configuration (`mkdocs.yml`) and a GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) to publish documentation to GitHub Pages from the `main` branch.
+
+To keep access limited to collaborators only, keep the repository private and in GitHub Pages settings use the private/access-restricted visibility options available to your plan.
+
 ## 🤝 Contributing
 
 We welcome contributions! If you have learning materials, guides, or notes that could help others, please see our [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to add them.
