@@ -308,6 +308,13 @@ public interface IThreeDSecureHandler
 
 public class StripeThreeDSecureHandler : IThreeDSecureHandler
 {
+    private readonly IStripeClient _client;
+
+    public StripeThreeDSecureHandler(IStripeClient client)
+    {
+        _client = client;
+    }
+
     public bool RequiresAuthentication(PaymentResult result)
         => result.Status == PaymentStatus.RequiresAction;
 
