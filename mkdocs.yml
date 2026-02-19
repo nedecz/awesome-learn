@@ -1,5 +1,5 @@
 site_name: Awesome Learn
-site_description: Learning resources for commerce systems, .NET/C#, Kubernetes, microservices, and observability
+site_description: Learning resources for .NET and C#
 repo_url: https://github.com/nedecz/awesome-learn
 docs_dir: docs
 site_dir: site
@@ -7,38 +7,6 @@ theme:
   name: mkdocs
 nav:
   - Home: index.md
-  - Commerce Systems: commerce-systems/README.md
-  - Kubernetes:
-    - Overview: kubernetes/README.md
-    - Fundamentals: kubernetes/00-OVERVIEW.md
-    - Services: kubernetes/01-SERVICES.md
-    - AWS EKS: kubernetes/02-CLOUD-SERVICES-AWS-EKS.md
-    - Oracle OKE: kubernetes/03-CLOUD-SERVICES-OKE.md
-    - Azure AKS: kubernetes/04-CLOUD-SERVICES-AKS.md
-    - Local Setup: kubernetes/05-LOCAL-SETUP-KIND-MINIKUBE.md
-    - Manifests: kubernetes/06-MANIFESTS.md
-    - CRDs & Operators: kubernetes/07-CRDS-AND-OPERATORS.md
-    - Controllers: kubernetes/08-CONTROLLERS.md
-    - Networking: kubernetes/09-NETWORKING.md
-    - Best Practices & Patterns: kubernetes/10-BEST-PRACTICES-AND-PATTERNS.md
-    - Anti-Patterns: kubernetes/11-ANTI-PATTERNS.md
-    - Learning Path: kubernetes/LEARNING-PATH.md
-  - Microservices:
-    - Overview: microservices/README.md
-    - Fundamentals: microservices/00-OVERVIEW.md
-    - Design Principles: microservices/01-DESIGN-PRINCIPLES.md
-    - Architecture Patterns: microservices/02-ARCHITECTURE-PATTERNS.md
-    - Communication Patterns: microservices/03-COMMUNICATION-PATTERNS.md
-    - Data Management: microservices/04-DATA-MANAGEMENT.md
-    - Service Discovery: microservices/05-SERVICE-DISCOVERY.md
-    - Resilience Patterns: microservices/06-RESILIENCE-PATTERNS.md
-    - Security: microservices/07-SECURITY.md
-    - Observability: microservices/08-OBSERVABILITY.md
-    - Deployment Strategies: microservices/09-DEPLOYMENT-STRATEGIES.md
-    - Testing Strategies: microservices/10-TESTING-STRATEGIES.md
-    - Best Practices: microservices/11-BEST-PRACTICES.md
-    - Anti-Patterns: microservices/12-ANTI-PATTERNS.md
-    - Learning Path: microservices/LEARNING-PATH.md
   - .NET and C#:
     - Overview: dotnet-csharp/README.md
     - .NET Ecosystem: dotnet-csharp/00-OVERVIEW.md
@@ -49,4 +17,3 @@ nav:
     - Concurrency & Parallelism: dotnet-csharp/05-CONCURRENCY-ASYNC-PARALLELISM.md
     - Dependency Injection: dotnet-csharp/06-DEPENDENCY-INJECTION.md
     - Learning Path: dotnet-csharp/LEARNING-PATH.md
-  - Observability: observability/README.md
