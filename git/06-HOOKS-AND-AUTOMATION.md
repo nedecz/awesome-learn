@@ -16,31 +16,36 @@
    - [Update Hook](#update-hook)
    - [Post-Receive Hook](#post-receive-hook)
    - [Enforcing Policies](#enforcing-policies)
-5. [Pre-Commit Framework](#pre-commit-framework)
+5. [Security Commit Checks](#security-commit-checks)
+   - [Secret Detection Hooks](#secret-detection-hooks)
+   - [Commit Signature Verification](#commit-signature-verification)
+   - [Dependency Vulnerability Scanning](#dependency-vulnerability-scanning)
+   - [Complete Security Hook Pipeline](#complete-security-hook-pipeline)
+6. [Pre-Commit Framework](#pre-commit-framework)
    - [Installation](#installation)
    - [Configuration](#configuration)
    - [Popular Hooks](#popular-hooks)
-6. [Husky (JavaScript)](#husky-javascript)
+7. [Husky (JavaScript)](#husky-javascript)
    - [Setup](#setup)
    - [Lint-Staged Integration](#lint-staged-integration)
-7. [Git Hooks for CI/CD](#git-hooks-for-cicd)
+8. [Git Hooks for CI/CD](#git-hooks-for-cicd)
    - [Triggering Pipelines](#triggering-pipelines)
    - [GitHub Actions Integration](#github-actions-integration)
    - [Webhook Events](#webhook-events)
-8. [Automating with Git Aliases](#automating-with-git-aliases)
+9. [Automating with Git Aliases](#automating-with-git-aliases)
    - [Useful Aliases for Productivity](#useful-aliases-for-productivity)
    - [Global Gitconfig](#global-gitconfig)
-9. [Git Attributes](#git-attributes)
-   - [Line Endings](#line-endings)
-   - [Merge Drivers](#merge-drivers)
-   - [Diff Drivers](#diff-drivers)
-   - [Git LFS](#git-lfs)
-10. [Git Templates](#git-templates)
+10. [Git Attributes](#git-attributes)
+    - [Line Endings](#line-endings)
+    - [Merge Drivers](#merge-drivers)
+    - [Diff Drivers](#diff-drivers)
+    - [Git LFS](#git-lfs)
+11. [Git Templates](#git-templates)
     - [Repository Templates](#repository-templates)
     - [Default Hooks](#default-hooks)
-11. [Best Practices](#best-practices)
-12. [Next Steps](#next-steps)
-13. [Version History](#version-history)
+12. [Best Practices](#best-practices)
+13. [Next Steps](#next-steps)
+14. [Version History](#version-history)
 
 ## Overview
 
@@ -484,6 +489,309 @@ Policy Enforcement Layers:
   │  ✅ Enforced by the hosting platform                      │
   └──────────────────────────────────────────────────────────┘
 ```
+
+## Security Commit Checks
+
+Security-focused Git hooks prevent secrets, unsigned commits, and vulnerable dependencies from entering your repository. By catching security issues **at commit time**, you avoid costly remediation after code is pushed or deployed.
+
+```
+Security Hook Pipeline:
+
+  ┌───────────────────────────────────────────────────────────────┐
+  │                    Developer Workflow                          │
+  │                                                               │
+  │  git add . ──▶ git commit ──▶ git push                       │
+  │                  │      │              │                       │
+  │            ┌─────┘      └─────┐        └──────┐               │
+  │            ▼                  ▼               ▼               │
+  │     ┌─────────────┐  ┌──────────────┐  ┌───────────┐        │
+  │     │ pre-commit   │  │ commit-msg   │  │ pre-push  │        │
+  │     │              │  │              │  │           │        │
+  │     │ • Secrets    │  │ • Signed?    │  │ • Dep     │        │
+  │     │   detection  │  │ • Conven-    │  │   audit   │        │
+  │     │ • Private    │  │   tional     │  │ • Full    │        │
+  │     │   key check  │  │   format?    │  │   secret  │        │
+  │     │ • Sensitive  │  │              │  │   scan    │        │
+  │     │   file block │  │              │  │           │        │
+  │     └─────────────┘  └──────────────┘  └───────────┘        │
+  │           │                │                 │                │
+  │           ▼                ▼                 ▼                │
+  │     Block commit     Block commit      Block push            │
+  │     if secrets       if unsigned or    if vulnerable          │
+  │     found            malformed msg     deps found             │
+  └───────────────────────────────────────────────────────────────┘
+```
+
+### Secret Detection Hooks
+
+The most critical security hook prevents secrets (API keys, passwords, private keys, tokens) from being committed to the repository. Once a secret is in Git history, it is **extremely difficult to fully remove** — even after deletion, it remains in the reflog and can be found by anyone who clones the repo.
+
+#### Pre-Commit Hook: Secret Scanner
+
+```bash
+#!/usr/bin/env bash
+# .git/hooks/pre-commit — Block commits containing secrets
+
+set -euo pipefail
+
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED_FILES" ] && exit 0
+
+echo "🔍 Scanning staged files for secrets..."
+
+# --- Pattern-based detection ---
+# Common secret patterns (AWS keys, generic passwords, private keys, tokens)
+SECRETS_PATTERNS=(
+    'AKIA[0-9A-Z]{16}'                               # AWS Access Key ID
+    'ASIA[0-9A-Z]{16}'                               # AWS Temporary Access Key
+    '["\x27]?password["\x27]?\s*[:=]\s*["\x27].+'    # Hardcoded passwords
+    '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY' # Private keys
+    'ghp_[0-9a-zA-Z]{36}'                            # GitHub Personal Access Token
+    'github_pat_[0-9a-zA-Z]{22}_[0-9a-zA-Z]{59}'    # GitHub Fine-grained PAT
+    'sk-[0-9a-zA-Z]{48}'                             # OpenAI API Key
+    'xox[bporas]-[0-9a-zA-Z-]+'                      # Slack Tokens
+    'SG\.[0-9A-Za-z_-]{22}\.[0-9A-Za-z_-]{43}'      # SendGrid API Key
+    'eyJ[A-Za-z0-9_-]*\.eyJ[A-Za-z0-9_-]*\.'        # JWT Token
+)
+
+COMBINED_PATTERN=$(IFS='|'; echo "${SECRETS_PATTERNS[*]}")
+FOUND_SECRETS=0
+
+for file in $STAGED_FILES; do
+    if [ -f "$file" ]; then
+        MATCHES=$(git diff --cached -- "$file" | grep -PE "$COMBINED_PATTERN" || true)
+        if [ -n "$MATCHES" ]; then
+            echo "❌ SECRET DETECTED in $file:"
+            echo "$MATCHES" | head -3
+            FOUND_SECRETS=1
+        fi
+    fi
+done
+
+# --- File-based detection ---
+# Block files that commonly contain secrets
+BLOCKED_FILES_PATTERN='\.(pem|key|p12|pfx|jks|keystore|env\.local|env\.production)$'
+BLOCKED=$(echo "$STAGED_FILES" | grep -E "$BLOCKED_FILES_PATTERN" || true)
+if [ -n "$BLOCKED" ]; then
+    echo "❌ BLOCKED FILES that commonly contain secrets:"
+    echo "$BLOCKED"
+    echo "   Add these to .gitignore or use a secret manager."
+    FOUND_SECRETS=1
+fi
+
+if [ "$FOUND_SECRETS" -eq 1 ]; then
+    echo ""
+    echo "🛑 Commit blocked. Remove secrets before committing."
+    echo "   If this is a false positive, use: git commit --no-verify"
+    exit 1
+fi
+
+echo "✅ No secrets detected."
+```
+
+#### Using gitleaks as a Pre-Commit Hook
+
+[gitleaks](https://github.com/gitleaks/gitleaks) is the industry-standard tool for secret detection. It supports custom rules, baseline files (to ignore known false positives), and integration with CI pipelines.
+
+```bash
+#!/usr/bin/env bash
+# .git/hooks/pre-commit — Use gitleaks for secret detection
+
+set -euo pipefail
+
+# Scan only staged changes (fast, focused)
+if command -v gitleaks &>/dev/null; then
+    echo "🔍 Running gitleaks on staged changes..."
+    gitleaks protect --staged --verbose
+else
+    echo "⚠ gitleaks not installed. Install: brew install gitleaks"
+    echo "  Falling back to pattern-based detection..."
+    # Add pattern-based fallback here
+fi
+```
+
+### Commit Signature Verification
+
+A server-side hook (or a CI check) can **reject unsigned commits**, ensuring every change in the repository has a verified author identity.
+
+#### Server-Side Pre-Receive Hook
+
+```bash
+#!/usr/bin/env bash
+# hooks/pre-receive — Reject unsigned commits (server-side)
+# Deploy on Git server or use as GitHub Actions check
+
+while read OLD_REV NEW_REV REF_NAME; do
+    # Skip branch deletions
+    if [ "$NEW_REV" = "0000000000000000000000000000000000000000" ]; then
+        continue
+    fi
+
+    # Only enforce on main and release branches
+    case "$REF_NAME" in
+        refs/heads/main|refs/heads/release/*)
+            ;;
+        *)
+            continue
+            ;;
+    esac
+
+    # Check each new commit for a valid signature
+    COMMITS=$(git rev-list "$OLD_REV".."$NEW_REV" 2>/dev/null || echo "$NEW_REV")
+    for COMMIT in $COMMITS; do
+        SIGNATURE=$(git verify-commit "$COMMIT" 2>&1 || true)
+        if echo "$SIGNATURE" | grep -q "Good signature"; then
+            continue
+        fi
+        echo "❌ UNSIGNED COMMIT: $COMMIT"
+        echo "   All commits to $REF_NAME must be GPG or SSH signed."
+        echo "   See: git commit -S -m 'your message'"
+        exit 1
+    done
+done
+
+echo "✅ All commits are signed."
+```
+
+#### GitHub Actions: Verify Commit Signatures
+
+```yaml
+# .github/workflows/verify-signatures.yml
+name: Verify Commit Signatures
+on:
+  pull_request:
+    branches: [main, release/*]
+
+jobs:
+  verify-signatures:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify all commits are signed
+        run: |
+          UNSIGNED=0
+          for COMMIT in $(git rev-list origin/${{ github.base_ref }}..${{ github.sha }}); do
+            if ! git verify-commit "$COMMIT" 2>/dev/null; then
+              echo "❌ Unsigned commit: $COMMIT ($(git log -1 --format='%s' $COMMIT))"
+              UNSIGNED=1
+            fi
+          done
+          if [ "$UNSIGNED" -eq 1 ]; then
+            echo "🛑 All commits must be signed. See: https://docs.github.com/en/authentication/managing-commit-signature-verification"
+            exit 1
+          fi
+          echo "✅ All commits are signed."
+```
+
+### Dependency Vulnerability Scanning
+
+A `pre-push` hook can audit dependencies for known vulnerabilities before code reaches the remote repository:
+
+```bash
+#!/usr/bin/env bash
+# .git/hooks/pre-push — Audit dependencies before pushing
+
+set -euo pipefail
+
+echo "🔍 Scanning dependencies for vulnerabilities..."
+
+# Node.js projects
+if [ -f "package-lock.json" ]; then
+    echo "Auditing npm dependencies..."
+    AUDIT_OUTPUT=$(npm audit --production 2>&1 || true)
+    if echo "$AUDIT_OUTPUT" | grep -q "high\|critical"; then
+        echo "❌ Critical/high vulnerability found in npm dependencies:"
+        npm audit --production 2>&1 | grep -A2 "high\|critical" | head -20
+        echo ""
+        echo "Run 'npm audit fix' to resolve, or 'git push --no-verify' to bypass."
+        exit 1
+    fi
+fi
+
+# Python projects
+if [ -f "requirements.txt" ]; then
+    if command -v pip-audit &>/dev/null; then
+        echo "Auditing Python dependencies..."
+        if ! pip-audit -r requirements.txt --desc 2>/dev/null; then
+            echo "❌ Vulnerabilities found in Python dependencies."
+            exit 1
+        fi
+    fi
+fi
+
+# Go projects
+if [ -f "go.sum" ]; then
+    echo "Auditing Go dependencies..."
+    if command -v govulncheck &>/dev/null; then
+        if ! govulncheck ./... 2>/dev/null; then
+            echo "❌ Vulnerabilities found in Go dependencies."
+            exit 1
+        fi
+    fi
+fi
+
+echo "✅ No known vulnerabilities found."
+```
+
+### Complete Security Hook Pipeline
+
+Here is a complete `.pre-commit-config.yaml` that combines all security checks into a single, manageable configuration:
+
+```yaml
+# .pre-commit-config.yaml — Security-focused hook pipeline
+
+repos:
+  # --- Secret Detection ---
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.4
+    hooks:
+      - id: gitleaks
+        name: "🔒 Detect secrets (gitleaks)"
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: detect-private-key
+        name: "🔑 Detect private keys"
+      - id: check-added-large-files
+        name: "📦 Block large files (may contain secrets)"
+        args: ['--maxkb=500']
+
+  # --- Commit Message Validation ---
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.3.0
+    hooks:
+      - id: conventional-pre-commit
+        name: "📝 Validate conventional commit message"
+        stages: [commit-msg]
+        args: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+
+  # --- File Security ---
+  - repo: local
+    hooks:
+      - id: block-sensitive-files
+        name: "🚫 Block sensitive file patterns"
+        entry: bash -c 'echo "$@" | grep -E "\.(pem|key|p12|pfx|env\.local|env\.production)$" && echo "❌ Sensitive file detected" && exit 1 || exit 0'
+        language: system
+        stages: [pre-commit]
+```
+
+#### Security Check Summary
+
+| Hook Stage | Check | Tool | Bypassable? |
+|---|---|---|---|
+| `pre-commit` | Secret detection | gitleaks, git-secrets | ⚠ `--no-verify` |
+| `pre-commit` | Private key detection | pre-commit-hooks | ⚠ `--no-verify` |
+| `pre-commit` | Sensitive file blocking | custom script | ⚠ `--no-verify` |
+| `commit-msg` | Conventional commit format | conventional-pre-commit, commitlint | ⚠ `--no-verify` |
+| `pre-push` | Dependency vulnerability audit | npm audit, pip-audit, govulncheck | ⚠ `--no-verify` |
+| `pre-receive` | Commit signature verification | git verify-commit (server-side) | ✅ Cannot bypass |
+| Platform | Branch protection, required checks | GitHub/GitLab settings | ✅ Cannot bypass |
+
+> **Important:** Client-side hooks can be bypassed with `--no-verify`. For mandatory enforcement, use **server-side hooks** or **platform-level branch protection rules** (required status checks, required signed commits). Client-side hooks are a first line of defense — not the only one.
 
 ## Pre-Commit Framework
 
