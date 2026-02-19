@@ -32,6 +32,16 @@
 - [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
+# .NET and C#
+
+- [Overview](dotnet-csharp/README.md)
+- [.NET Ecosystem](dotnet-csharp/00-OVERVIEW.md)
+- [Breaking Changes from .NET Core 3.1](dotnet-csharp/01-BREAKING-CHANGES-DOTNET-CORE-31.md)
+- [Services](dotnet-csharp/02-SERVICES.md)
+- [Best Practices](dotnet-csharp/03-BEST-PRACTICES.md)
+- [Style Guide](dotnet-csharp/04-STYLE-GUIDE.md)
+- [Learning Path](dotnet-csharp/LEARNING-PATH.md)
+
 # Kubernetes
 
 - [Overview](kubernetes/README.md)

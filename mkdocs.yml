@@ -1,5 +1,5 @@
 site_name: Awesome Learn
-site_description: Learning resources for commerce systems, Kubernetes, microservices, and observability
+site_description: Learning resources for commerce systems, .NET/C#, Kubernetes, microservices, and observability
 repo_url: https://github.com/nedecz/awesome-learn
 docs_dir: docs
 site_dir: site
@@ -39,4 +39,12 @@ nav:
     - Best Practices: microservices/11-BEST-PRACTICES.md
     - Anti-Patterns: microservices/12-ANTI-PATTERNS.md
     - Learning Path: microservices/LEARNING-PATH.md
+  - .NET and C#:
+    - Overview: dotnet-csharp/README.md
+    - .NET Ecosystem: dotnet-csharp/00-OVERVIEW.md
+    - Breaking Changes from .NET Core 3.1: dotnet-csharp/01-BREAKING-CHANGES-DOTNET-CORE-31.md
+    - Services: dotnet-csharp/02-SERVICES.md
+    - Best Practices: dotnet-csharp/03-BEST-PRACTICES.md
+    - Style Guide: dotnet-csharp/04-STYLE-GUIDE.md
+    - Learning Path: dotnet-csharp/LEARNING-PATH.md
   - Observability: observability/README.md
