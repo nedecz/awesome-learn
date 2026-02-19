@@ -40,6 +40,8 @@
 - [Services](dotnet-csharp/02-SERVICES.md)
 - [Best Practices](dotnet-csharp/03-BEST-PRACTICES.md)
 - [Style Guide](dotnet-csharp/04-STYLE-GUIDE.md)
+- [Concurrency & Parallelism](dotnet-csharp/05-CONCURRENCY-ASYNC-PARALLELISM.md)
+- [Dependency Injection](dotnet-csharp/06-DEPENDENCY-INJECTION.md)
 - [Learning Path](dotnet-csharp/LEARNING-PATH.md)
 
 # Kubernetes

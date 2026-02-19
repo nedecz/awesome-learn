@@ -9,12 +9,14 @@
 5. [Breaking Changes: .NET 5 to .NET 6](#breaking-changes-net-5-to-net-6)
 6. [Breaking Changes: .NET 6 to .NET 7](#breaking-changes-net-6-to-net-7)
 7. [Breaking Changes: .NET 7 to .NET 8](#breaking-changes-net-7-to-net-8)
-8. [Migration Checklist](#migration-checklist)
-9. [Next Steps](#next-steps)
+8. [Breaking Changes: .NET 8 to .NET 9](#breaking-changes-net-8-to-net-9)
+9. [Breaking Changes: .NET 9 to .NET 10](#breaking-changes-net-9-to-net-10)
+10. [Migration Checklist](#migration-checklist)
+11. [Next Steps](#next-steps)
 
 ## Overview
 
-This document catalogs the significant breaking changes encountered when migrating from .NET Core 3.1 through each subsequent major .NET release up to .NET 8. Each section includes tables of key changes, before/after code examples, and mitigation strategies.
+This document catalogs the significant breaking changes encountered when migrating from .NET Core 3.1 through each subsequent major .NET release up to .NET 10 (the latest LTS). Each section includes tables of key changes, before/after code examples, and mitigation strategies.
 
 ### Target Audience
 
@@ -42,17 +44,25 @@ This document catalogs the significant breaking changes encountered when migrati
                        │   .NET 8    │◄───│   .NET 7    │
                        │   (LTS)     │    │   (STS)     │
                        │ EOL: Nov 26 │    │ EOL: May 24 │
-                       └─────────────┘    └─────────────┘
+                       └──────┬──────┘    └─────────────┘
+                              │
+               ┌──────────────▼──────────────┐
+               │   .NET 9    │   .NET 10     │
+               │   (STS)     │   (LTS)       │
+               │ EOL: May 26 │   EOL: Nov 28 │
+               └─────────────┴───────────────┘
 ```
 
 ### Recommended Migration Strategy
 
 | Starting Version | Recommended Path | Notes |
 |-----------------|-----------------|-------|
-| .NET Core 3.1 | 3.1 → 6 → 8 | Skip .NET 5; jump to LTS releases |
-| .NET 5 | 5 → 6 → 8 | Migrate to LTS as soon as possible |
-| .NET 6 | 6 → 8 | Direct upgrade to latest LTS |
-| .NET 7 | 7 → 8 | Direct upgrade to latest LTS |
+| .NET Core 3.1 | 3.1 → 6 → 8 → 10 | Skip STS versions; jump to LTS releases |
+| .NET 5 | 5 → 6 → 8 → 10 | Migrate to LTS as soon as possible |
+| .NET 6 | 6 → 8 → 10 | Two LTS hops |
+| .NET 7 | 7 → 8 → 10 | Upgrade to LTS |
+| .NET 8 | 8 → 10 | Direct upgrade to latest LTS |
+| .NET 9 | 9 → 10 | Direct upgrade to latest LTS |
 
 > **Tip:** Always migrate to LTS releases for production workloads. Skip STS versions unless you need a specific feature.
 
@@ -66,6 +76,7 @@ This document catalogs the significant breaking changes encountered when migrati
 | .NET 7 | Nov 2022 | STS (18 months) | May 14, 2024 | ⚠️ EOL |
 | .NET 8 | Nov 2023 | LTS (3 years) | Nov 10, 2026 | ✅ Active |
 | .NET 9 | Nov 2024 | STS (18 months) | May 2026 | ✅ Active |
+| .NET 10 | Nov 2025 | LTS (3 years) | Nov 2028 | ✅ **Latest LTS** |
 
 ```
 Release Cadence (annual November releases):
@@ -868,6 +879,218 @@ app.MapRazorComponents<App>()
 }
 ```
 
+## Breaking Changes: .NET 8 to .NET 9
+
+.NET 9 (STS, Nov 2024) introduced hybrid caching, built-in OpenAPI, AI extensions, and several breaking changes across ASP.NET Core and the runtime.
+
+### Key Breaking Changes
+
+| Area | Change | Impact |
+|------|--------|--------|
+| **OpenAPI** | Built-in OpenAPI document generation replaces Swashbuckle defaults | Project templates no longer include Swashbuckle |
+| **HybridCache** | New `HybridCache` API replaces `IDistributedCache` patterns | Existing cache abstractions may need refactoring |
+| **JSON** | `System.Text.Json` respects required properties more strictly | Deserialization may fail for missing required members |
+| **Blazor** | Static SSR improvements, `@rendermode` changes | Component render mode syntax refined |
+| **LINQ** | `CountBy` and `AggregateBy` added to LINQ | New method names may conflict with extension methods |
+| **Networking** | `SocketsHttpHandler` is default for `HttpClientFactory` | Custom handler configurations may need review |
+| **Hosting** | `IHostApplicationBuilder` changes | Custom host builders may need updates |
+| **Cryptography** | CryptoConfig deprecated | Use algorithm-specific factory methods |
+
+### Migration: OpenAPI Changes
+
+```csharp
+// ❌ .NET 8 — Swashbuckle was the default
+builder.Services.AddSwaggerGen();
+// ...
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// ✅ .NET 9 — Built-in OpenAPI support
+builder.Services.AddOpenApi();
+// ...
+app.MapOpenApi();
+// Swashbuckle still works but is no longer included in templates
+```
+
+### Migration: HybridCache
+
+```csharp
+// ❌ .NET 8 — Manual IDistributedCache + IMemoryCache pattern
+public class ProductService
+{
+    private readonly IDistributedCache _distributed;
+    private readonly IMemoryCache _memory;
+
+    public async Task<Product?> GetAsync(string id)
+    {
+        // Check memory, then distributed, then source
+        if (_memory.TryGetValue(id, out Product? cached))
+            return cached;
+
+        var bytes = await _distributed.GetAsync(id);
+        if (bytes is not null)
+            return JsonSerializer.Deserialize<Product>(bytes);
+
+        var product = await _db.FindAsync(id);
+        // Cache in both layers...
+        return product;
+    }
+}
+
+// ✅ .NET 9 — HybridCache handles L1/L2 automatically
+public class ProductService(HybridCache cache, ProductDb db)
+{
+    public async Task<Product> GetAsync(string id)
+    {
+        return await cache.GetOrCreateAsync(
+            $"product-{id}",
+            async ct => await db.FindAsync(id, ct),
+            new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(5),
+                LocalCacheExpiration = TimeSpan.FromMinutes(1)
+            });
+    }
+}
+```
+
+### Migration: LINQ New Methods
+
+```csharp
+// ❌ .NET 8 — If you had custom extension methods named CountBy
+public static class MyExtensions
+{
+    // This will conflict with the new built-in LINQ method
+    public static Dictionary<TKey, int> CountBy<T, TKey>(/* ... */) { }
+}
+
+// ✅ .NET 9 — Use the built-in CountBy and AggregateBy
+var letterCounts = words.CountBy(w => w[0]);
+var categoryTotals = items.AggregateBy(
+    i => i.Category,
+    0m,
+    (total, item) => total + item.Price);
+```
+
+## Breaking Changes: .NET 9 to .NET 10
+
+.NET 10 (LTS, Nov 2025) is the latest Long-Term Support release. It ships with C# 13 and brings extended AOT support, improved DI features, Blazor enhancements, and runtime performance gains.
+
+### Key Breaking Changes
+
+| Area | Change | Impact |
+|------|--------|--------|
+| **Target Framework** | TFM changes to `net10.0` | Update `<TargetFramework>` in all project files |
+| **C# 13** | `params` collections (not just arrays), `field` keyword in properties | May conflict with existing `field` named variables in property accessors |
+| **AOT** | Extended Native AOT support for more workloads | Trim warnings become errors in AOT-published apps |
+| **DI** | Improved scope validation, stricter lifetime checks | Applications with captive dependencies may fail at startup |
+| **Blazor** | Enhanced static SSR, improved navigation | Existing Blazor components may need attribute updates |
+| **EF Core 10** | Query improvements, stricter migration validation | Some LINQ translations may change behavior |
+| **Minimal APIs** | Enhanced parameter binding, typed results | Custom binding logic may conflict with new built-in binding |
+| **JSON** | `JsonSerializerOptions.Default` behavioral changes | Default serialization behavior may differ |
+| **Cryptography** | Older algorithms removed or disabled by default | Apps using legacy algorithms must opt in explicitly |
+| **Hosting** | `WebApplication` startup validation stricter | Misconfigured services detected earlier at startup |
+
+### Migration: Target Framework
+
+```xml
+<!-- ❌ .NET 9 -->
+<TargetFramework>net9.0</TargetFramework>
+
+<!-- ✅ .NET 10 -->
+<TargetFramework>net10.0</TargetFramework>
+```
+
+### Migration: C# 13 `params` Collections
+
+```csharp
+// ❌ .NET 9 / C# 12 — params only works with arrays
+public void Log(string message, params string[] tags) { }
+
+// ✅ .NET 10 / C# 13 — params works with any collection type
+public void Log(string message, params ReadOnlySpan<string> tags) { }
+public void Log(string message, params IEnumerable<string> tags) { }
+
+// The compiler chooses the best overload — existing call sites still work
+Log("Hello", "info", "startup");
+```
+
+### Migration: C# 13 `field` Keyword
+
+```csharp
+// ⚠️ .NET 10 / C# 13 — 'field' is now a keyword in property accessors
+// If you have a variable named 'field', it will conflict
+
+// ❌ This may break
+public class MyClass
+{
+    private string field = ""; // variable named 'field'
+    public string Name
+    {
+        get => field;          // now refers to the backing field keyword
+        set => field = value;
+    }
+}
+
+// ✅ Rename or use @field to escape
+public class MyClass
+{
+    private string _name = "";
+    public string Name
+    {
+        get => _name;
+        set => _name = value;
+    }
+}
+
+// ✅ Or use the new field keyword intentionally
+public class MyClass
+{
+    public string Name
+    {
+        get => field;                            // auto-property backing field
+        set => field = value?.Trim() ?? "";      // validation in setter
+    }
+}
+```
+
+### Migration: Stricter AOT Trim Warnings
+
+```xml
+<!-- ❌ .NET 9 — Trim warnings were warnings -->
+<PublishAot>true</PublishAot>
+
+<!-- ✅ .NET 10 — Trim warnings may be errors; address them -->
+<PublishAot>true</PublishAot>
+<TrimmerSingleWarn>false</TrimmerSingleWarn>
+<!-- Fix all IL2XXX and IL3XXX warnings for reliable AOT -->
+```
+
+```csharp
+// ❌ Reflection-heavy code will fail with AOT
+var type = Type.GetType("MyApp.Services.OrderService");
+var instance = Activator.CreateInstance(type!);
+
+// ✅ Use DI or source generators instead
+// Register in DI container and inject
+public class OrderController(IOrderService orderService) { }
+```
+
+### Migration: Enhanced DI Validation
+
+```csharp
+// ❌ .NET 9 — Captive dependency may go undetected
+builder.Services.AddSingleton<ICacheService, CacheService>();
+builder.Services.AddScoped<IDbContext, AppDbContext>();  // scoped in singleton = bug
+
+// ✅ .NET 10 — Stricter scope validation catches this at startup
+builder.Host.UseDefaultServiceProvider(options =>
+{
+    options.ValidateScopes = true;   // now more strictly enforced
+    options.ValidateOnBuild = true;  // catches more registration errors
+});
+```
+
 ## Migration Checklist
 
 Use this checklist when upgrading between .NET versions.
@@ -922,12 +1145,15 @@ Continue to [Services](02-SERVICES.md) to learn about dependency injection, Web 
 
 ### Related Documents
 
-1. **[Services](02-SERVICES.md)** — DI, Web APIs, worker services, gRPC, configuration
+1. **[Services](02-SERVICES.md)** — Web APIs, worker services, gRPC, configuration
 2. **[Best Practices](03-BEST-PRACTICES.md)** — Async/await, memory, security, testing
 3. **[Style Guide](04-STYLE-GUIDE.md)** — Naming conventions, formatting, analyzers
+4. **[Concurrency & Parallelism](05-CONCURRENCY-ASYNC-PARALLELISM.md)** — Async deep dive, TPL, channels, job queuing
+5. **[Dependency Injection](06-DEPENDENCY-INJECTION.md)** — DI patterns, lifetimes, keyed services, testing
 
 ## Version History
 
 | Version | Date | Changes |
 |---|---|---|
 | 1.0 | 2025 | Initial breaking changes documentation covering .NET Core 3.1 through .NET 8 |
+| 1.1 | 2025 | Added .NET 9 and .NET 10 breaking changes sections |

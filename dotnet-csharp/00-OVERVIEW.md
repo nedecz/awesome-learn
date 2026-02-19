@@ -66,6 +66,8 @@ The .NET platform has undergone significant transformation since its initial rel
 2023    .NET 8 (LTS)          — Native AOT for ASP.NET, keyed DI, Blazor United
   │
 2024    .NET 9                — Hybrid cache, OpenAPI built-in, AI extensions
+  │
+2025    .NET 10 (LTS)         — C# 13, extended AOT, improved DI, Blazor enhancements
 ```
 
 ### Key Milestones
@@ -79,6 +81,7 @@ The .NET platform has undergone significant transformation since its initial rel
 | 2020 | .NET 5 | Unification of .NET Framework and .NET Core |
 | 2021 | .NET 6 | First unified LTS release |
 | 2023 | .NET 8 | Full native AOT support for web workloads |
+| 2025 | .NET 10 | Latest LTS — C# 13, extended AOT, DI improvements |
 
 ## .NET Architecture Components
 
@@ -239,6 +242,7 @@ C# has evolved rapidly with annual releases. Below are the key features introduc
 | **Container support** | Limited | Good | Excellent |
 | **Minimum APIs** | No | No | Yes (.NET 6+) |
 | **Native AOT** | No | No | Yes (.NET 7+ / full in .NET 8) |
+| **Latest LTS** | N/A | N/A | .NET 10 (Nov 2025) |
 | **Status** | ⚠️ Legacy | ⚠️ EOL | ✅ Active development |
 
 ### Migration Decision Tree
@@ -249,7 +253,7 @@ C# has evolved rapidly with annual releases. Below are the key features introduc
 └──────────┬───────────────────────────┘
            │
      ┌─────▼─────┐
-     │    Yes     │──────────────► Use .NET 8+ (latest LTS)
+     │    Yes     │──────────────► Use .NET 10 (latest LTS)
      └───────────┘
            │
      ┌─────▼──────┐
@@ -261,12 +265,12 @@ C# has evolved rapidly with annual releases. Below are the key features introduc
 └──────────┬───────────────────────────┘
            │
      ┌─────▼─────┐
-     │    Yes     │──────────────► Plan migration to .NET 8+
+     │    Yes     │──────────────► Plan migration to .NET 10
      └───────────┘                 See 01-BREAKING-CHANGES
            │
      ┌─────▼──────┐
      │     No      │
-     │ (.NET Core) │──────────────► Upgrade to latest LTS
+     │ (.NET Core) │──────────────► Upgrade to .NET 10 (latest LTS)
      └────────────┘                 See 01-BREAKING-CHANGES
 ```
 
@@ -372,15 +376,17 @@ MyWebApi/
 
 ## Next Steps
 
-Continue to [Breaking Changes from .NET Core 3.1](01-BREAKING-CHANGES-DOTNET-CORE-31.md) to understand the migration path from .NET Core 3.1 through .NET 8, including removed APIs, behavioral changes, and code migration patterns.
+Continue to [Breaking Changes from .NET Core 3.1](01-BREAKING-CHANGES-DOTNET-CORE-31.md) to understand the migration path from .NET Core 3.1 through .NET 10, including removed APIs, behavioral changes, and code migration patterns.
 
 ### Suggested Learning Path
 
-1. **[Breaking Changes](01-BREAKING-CHANGES-DOTNET-CORE-31.md)** — Migration from .NET Core 3.1 through .NET 8
-2. **[Services](02-SERVICES.md)** — DI, Web APIs, worker services, gRPC, configuration
+1. **[Breaking Changes](01-BREAKING-CHANGES-DOTNET-CORE-31.md)** — Migration from .NET Core 3.1 through .NET 10
+2. **[Services](02-SERVICES.md)** — Web APIs, worker services, gRPC, configuration
 3. **[Best Practices](03-BEST-PRACTICES.md)** — Async/await, memory, security, testing
 4. **[Style Guide](04-STYLE-GUIDE.md)** — Naming conventions, formatting, analyzers
-5. **[Learning Path](LEARNING-PATH.md)** — Structured 12-week curriculum
+5. **[Concurrency & Parallelism](05-CONCURRENCY-ASYNC-PARALLELISM.md)** — Async deep dive, TPL, channels, job queuing
+6. **[Dependency Injection](06-DEPENDENCY-INJECTION.md)** — DI patterns, lifetimes, keyed services, testing
+7. **[Learning Path](LEARNING-PATH.md)** — Structured 12-week curriculum
 
 ## Version History
 
