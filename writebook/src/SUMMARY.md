@@ -49,6 +49,24 @@
 - [Anti-Patterns](kubernetes/11-ANTI-PATTERNS.md)
 - [Learning Path](kubernetes/LEARNING-PATH.md)
 
+# Microservices
+
+- [Overview](microservices/README.md)
+- [Microservices Fundamentals](microservices/00-OVERVIEW.md)
+- [Design Principles](microservices/01-DESIGN-PRINCIPLES.md)
+- [Architecture Patterns](microservices/02-ARCHITECTURE-PATTERNS.md)
+- [Communication Patterns](microservices/03-COMMUNICATION-PATTERNS.md)
+- [Data Management](microservices/04-DATA-MANAGEMENT.md)
+- [Service Discovery](microservices/05-SERVICE-DISCOVERY.md)
+- [Resilience Patterns](microservices/06-RESILIENCE-PATTERNS.md)
+- [Security](microservices/07-SECURITY.md)
+- [Observability](microservices/08-OBSERVABILITY.md)
+- [Deployment Strategies](microservices/09-DEPLOYMENT-STRATEGIES.md)
+- [Testing Strategies](microservices/10-TESTING-STRATEGIES.md)
+- [Best Practices](microservices/11-BEST-PRACTICES.md)
+- [Anti-Patterns](microservices/12-ANTI-PATTERNS.md)
+- [Learning Path](microservices/LEARNING-PATH.md)
+
 # Observability
 
 - [Overview](observability/README.md)
