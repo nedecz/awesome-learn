@@ -1092,7 +1092,7 @@ git remote add upstream https://github.com/org/project.git
 git config remote.pushdefault origin
 
 # Configure pull to come from upstream for the main branch
-git branch main --set-upstream-to upstream/main
+git branch main --set-upstream-to=upstream/main
 
 # Now the triangle works:
 git pull          # fetches from upstream/main
@@ -1178,7 +1178,7 @@ gh pr create --repo org/project
 
 ## Next Steps
 
-Continue to [Git Hooks and Automation](05-GIT-HOOKS-AND-AUTOMATION.md) to learn about client-side and server-side Git hooks, pre-commit frameworks, CI/CD integration, and automating code quality checks in your Git workflow.
+Continue to [Advanced Techniques](05-ADVANCED-TECHNIQUES.md) to learn about interactive rebase, cherry-pick, bisect, reflog, and other advanced Git operations for managing complex project histories.
 
 ## Version History
 
