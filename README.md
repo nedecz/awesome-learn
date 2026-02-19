@@ -8,6 +8,7 @@ This repository is organized into the following learning areas:
 
 - **[Commerce Systems](./commerce-systems/)** - E-commerce platforms, payment systems, and online retail technologies
 - **[Git](./git/)** - Version control, branching strategies, collaboration workflows, and Git best practices
+- **[.NET and C#](./dotnet-csharp/)** - .NET ecosystem, C# language, services, breaking changes, best practices, and style guide
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
