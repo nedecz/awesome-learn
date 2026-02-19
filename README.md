@@ -8,6 +8,7 @@ This repository is organized into the following learning areas:
 
 - **[Commerce Systems](./commerce-systems/)** - E-commerce platforms, payment systems, and online retail technologies
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
+- **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
 
 ## 🚀 Getting Started
