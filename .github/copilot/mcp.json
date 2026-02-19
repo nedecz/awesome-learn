@@ -1,0 +1,34 @@
+{
+  "mcpServers": {
+    "learn": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "markitdown": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": ["markitdown-mcp"]
+    },
+    "mssql": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@knight0zh/mssql-mcp-server"],
+      "env": {
+        "MSSQL_HOST": "${COPILOT_MCP_MSSQL_HOST}",
+        "MSSQL_PORT": "${COPILOT_MCP_MSSQL_PORT}",
+        "MSSQL_DATABASE": "${COPILOT_MCP_MSSQL_DATABASE}",
+        "MSSQL_USER": "${COPILOT_MCP_MSSQL_USER}",
+        "MSSQL_PASSWORD": "${COPILOT_MCP_MSSQL_PASSWORD}"
+      }
+    },
+    "nuget": {
+      "type": "stdio",
+      "command": "dnx",
+      "args": [
+        "NuGet.Mcp.Server",
+        "--source", "https://api.nuget.org/v3/index.json",
+        "--yes"
+      ]
+    }
+  }
+}
