@@ -13,6 +13,13 @@ A comprehensive guide to .NET and C# development — from language fundamentals 
 | [04-STYLE-GUIDE](04-STYLE-GUIDE.md) | C# naming conventions, formatting, analyzers, EditorConfig | When writing or reviewing code |
 | [05-CONCURRENCY-ASYNC-PARALLELISM](05-CONCURRENCY-ASYNC-PARALLELISM.md) | Async deep dive, TPL, PLINQ, channels, job queuing | When building concurrent systems |
 | [06-DEPENDENCY-INJECTION](06-DEPENDENCY-INJECTION.md) | DI patterns, lifetimes, keyed services, testing, anti-patterns | When designing service architectures |
+| [07-ENTITY-FRAMEWORK-CORE](07-ENTITY-FRAMEWORK-CORE.md) | EF Core, DbContext, migrations, LINQ queries, Dapper, performance | When building data access layers |
+| [08-TESTING](08-TESTING.md) | Unit testing, integration testing, xUnit, mocking, test architecture | When writing or improving tests |
+| [09-SECURITY-AND-AUTHENTICATION](09-SECURITY-AND-AUTHENTICATION.md) | Identity, OAuth2/OIDC, JWT, CORS, data protection, secrets | When securing applications |
+| [10-MIDDLEWARE-AND-HTTP-PIPELINE](10-MIDDLEWARE-AND-HTTP-PIPELINE.md) | Middleware, request pipeline, filters, rate limiting, output caching | When customizing the HTTP pipeline |
+| [11-DESIGN-PATTERNS](11-DESIGN-PATTERNS.md) | Factory, Strategy, Mediator, CQRS, Repository, Result pattern | When designing application architecture |
+| [12-CONFIGURATION-AND-DEPLOYMENT](12-CONFIGURATION-AND-DEPLOYMENT.md) | Docker, CI/CD, health checks, feature flags, publishing | When deploying to production |
+| [13-ANTI-PATTERNS](13-ANTI-PATTERNS.md) | Common .NET anti-patterns and fixes across all areas | **Essential — what NOT to do** |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured 12-week training guide | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -175,6 +182,13 @@ Built-in DI Container
 - **Style Guide** — Naming conventions, formatting, analyzers, EditorConfig
 - **Concurrency & Parallelism** — Async deep dive, TPL, PLINQ, channels, job queuing
 - **Dependency Injection** — DI patterns, lifetimes, keyed services, testing, anti-patterns
+- **Entity Framework Core** — DbContext, migrations, LINQ queries, Dapper, performance optimization
+- **Testing** — Unit testing, integration testing, xUnit, mocking, test architecture
+- **Security & Authentication** — Identity, OAuth2/OIDC, JWT, CORS, data protection, secrets
+- **Middleware & HTTP Pipeline** — Middleware, filters, rate limiting, output caching
+- **Design Patterns** — Factory, Strategy, Mediator, CQRS, Repository, Result pattern
+- **Configuration & Deployment** — Docker, CI/CD, health checks, feature flags, publishing
+- **Anti-Patterns** — Common .NET anti-patterns across async, DI, EF Core, memory, API design
 - **Learning Path** — Structured 12-week curriculum with hands-on exercises
 
 ## 🤝 Contributing
@@ -189,8 +203,18 @@ This is a living collection of learning resources. Contributions are welcome —
 
 **Building services?** → Review [02-SERVICES.md](02-SERVICES.md) and [03-BEST-PRACTICES.md](03-BEST-PRACTICES.md)
 
+**Working with databases?** → Read [07-ENTITY-FRAMEWORK-CORE.md](07-ENTITY-FRAMEWORK-CORE.md)
+
 **Need concurrency or job queuing?** → Read [05-CONCURRENCY-ASYNC-PARALLELISM.md](05-CONCURRENCY-ASYNC-PARALLELISM.md)
 
+**Writing tests?** → Read [08-TESTING.md](08-TESTING.md)
+
+**Securing your app?** → Read [09-SECURITY-AND-AUTHENTICATION.md](09-SECURITY-AND-AUTHENTICATION.md)
+
 **Designing DI architecture?** → Read [06-DEPENDENCY-INJECTION.md](06-DEPENDENCY-INJECTION.md)
+
+**Deploying to production?** → Read [12-CONFIGURATION-AND-DEPLOYMENT.md](12-CONFIGURATION-AND-DEPLOYMENT.md)
+
+**Avoiding pitfalls?** → Read [13-ANTI-PATTERNS.md](13-ANTI-PATTERNS.md)
 
 **Want a structured path?** → Follow the [Learning Path](LEARNING-PATH.md)

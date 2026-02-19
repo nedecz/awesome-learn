@@ -42,6 +42,13 @@
 - [Style Guide](dotnet-csharp/04-STYLE-GUIDE.md)
 - [Concurrency & Parallelism](dotnet-csharp/05-CONCURRENCY-ASYNC-PARALLELISM.md)
 - [Dependency Injection](dotnet-csharp/06-DEPENDENCY-INJECTION.md)
+- [Entity Framework Core](dotnet-csharp/07-ENTITY-FRAMEWORK-CORE.md)
+- [Testing](dotnet-csharp/08-TESTING.md)
+- [Security & Authentication](dotnet-csharp/09-SECURITY-AND-AUTHENTICATION.md)
+- [Middleware & HTTP Pipeline](dotnet-csharp/10-MIDDLEWARE-AND-HTTP-PIPELINE.md)
+- [Design Patterns](dotnet-csharp/11-DESIGN-PATTERNS.md)
+- [Configuration & Deployment](dotnet-csharp/12-CONFIGURATION-AND-DEPLOYMENT.md)
+- [Anti-Patterns](dotnet-csharp/13-ANTI-PATTERNS.md)
 - [Learning Path](dotnet-csharp/LEARNING-PATH.md)
 
 # Kubernetes
