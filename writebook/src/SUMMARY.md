@@ -32,6 +32,22 @@
 - [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
+# Git
+
+- [Overview](git/README.md)
+- [Git Fundamentals](git/00-OVERVIEW.md)
+- [Branching Strategies](git/01-BRANCHING-STRATEGIES.md)
+- [Commits & History](git/02-COMMITS-AND-HISTORY.md)
+- [Merging & Rebasing](git/03-MERGING-AND-REBASING.md)
+- [Remote Collaboration](git/04-REMOTE-COLLABORATION.md)
+- [Advanced Techniques](git/05-ADVANCED-TECHNIQUES.md)
+- [Hooks & Automation](git/06-HOOKS-AND-AUTOMATION.md)
+- [Monorepos & Submodules](git/07-MONOREPOS-AND-SUBMODULES.md)
+- [Security & Signing](git/08-SECURITY-AND-SIGNING.md)
+- [Best Practices](git/09-BEST-PRACTICES.md)
+- [Anti-Patterns](git/10-ANTI-PATTERNS.md)
+- [Learning Path](git/LEARNING-PATH.md)
+
 # Kubernetes
 
 - [Overview](kubernetes/README.md)
