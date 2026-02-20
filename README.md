@@ -14,6 +14,7 @@ This repository is organized into the following learning areas:
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
+- **[Terminal](./terminal/)** - Terminal tools, tmux, Neovim, shell configuration, and cross-platform setup
 
 ## 🚀 Getting Started
 
