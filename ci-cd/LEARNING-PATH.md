@@ -1204,6 +1204,6 @@ Write a comprehensive README that includes:
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-01-01 | Initial document — 6-phase learning path with exercises and capstone | Platform Team |
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2025 | Initial CI/CD Learning Path documentation |

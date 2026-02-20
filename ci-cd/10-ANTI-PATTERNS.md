@@ -1777,6 +1777,6 @@ Use this checklist before deploying any new pipeline or service to production.
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-01-01 | Initial document — 12 anti-patterns with examples and fixes | Platform Team |
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | 2025 | Initial CI/CD Anti-Patterns documentation |
