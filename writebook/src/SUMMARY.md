@@ -2,6 +2,22 @@
 
 [Introduction](introduction.md)
 
+# CI/CD
+
+- [Overview](ci-cd/README.md)
+- [CI/CD Fundamentals](ci-cd/00-OVERVIEW.md)
+- [Continuous Integration](ci-cd/01-CONTINUOUS-INTEGRATION.md)
+- [Continuous Delivery & Deployment](ci-cd/02-CONTINUOUS-DELIVERY.md)
+- [GitHub Actions](ci-cd/03-GITHUB-ACTIONS.md)
+- [Azure DevOps](ci-cd/04-AZURE-DEVOPS.md)
+- [Jenkins](ci-cd/05-JENKINS.md)
+- [GitOps](ci-cd/06-GITOPS.md)
+- [Testing in Pipelines](ci-cd/07-TESTING-IN-PIPELINES.md)
+- [Security in Pipelines](ci-cd/08-SECURITY-IN-PIPELINES.md)
+- [Best Practices](ci-cd/09-BEST-PRACTICES.md)
+- [Anti-Patterns](ci-cd/10-ANTI-PATTERNS.md)
+- [Learning Path](ci-cd/LEARNING-PATH.md)
+
 # Commerce Systems
 
 - [Overview](commerce-systems/README.md)

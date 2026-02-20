@@ -1769,8 +1769,8 @@ Use this checklist before deploying any new pipeline or service to production.
 1. **Score yourself** — Use the [Quick Reference Checklist](#quick-reference-checklist) and score your current pipelines. Any unchecked item is a potential anti-pattern.
 2. **Fix critical severity first** — Address 🔴 Critical anti-patterns (#1–#5) before high and medium ones.
 3. **Read the companion guide** — [09-BEST-PRACTICES.md](09-BEST-PRACTICES.md) describes the correct patterns to replace these anti-patterns.
-4. **Secure your pipelines** — [07-SECURITY.md](07-SECURITY.md) covers pipeline security in depth, including secret management and supply chain hardening.
-5. **Optimise performance** — [08-PERFORMANCE.md](08-PERFORMANCE.md) covers pipeline caching, parallelism, and build optimisation.
+4. **Secure your pipelines** — [08-SECURITY-IN-PIPELINES.md](08-SECURITY-IN-PIPELINES.md) covers pipeline security in depth, including secret management and supply chain hardening.
+5. **Optimise pipeline testing** — [07-TESTING-IN-PIPELINES.md](07-TESTING-IN-PIPELINES.md) covers test strategies, parallelism, and quality gates.
 6. **Follow the learning path** — [LEARNING-PATH.md](LEARNING-PATH.md) provides a structured curriculum through all CI/CD topics.
 
 ---
