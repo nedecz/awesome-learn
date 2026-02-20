@@ -1,6 +1,5 @@
 site_name: Awesome Learn
-site_description: Learning resources for commerce systems, databases, Docker, Git, Kubernetes, microservices, observability, and .NET/C#
-site_description: Learning resources for commerce systems, Docker, Git, Kubernetes, microservices, observability, terminal tools, and .NET/C#
+site_description: Learning resources for CI/CD, commerce systems, databases, Docker, Git, Kubernetes, microservices, observability, terminal tools, and .NET/C#
 repo_url: https://github.com/nedecz/awesome-learn
 docs_dir: docs
 site_dir: site
@@ -8,6 +7,20 @@ theme:
   name: mkdocs
 nav:
   - Home: index.md
+  - CI/CD:
+    - Overview: ci-cd/README.md
+    - Fundamentals: ci-cd/00-OVERVIEW.md
+    - Continuous Integration: ci-cd/01-CONTINUOUS-INTEGRATION.md
+    - Continuous Delivery: ci-cd/02-CONTINUOUS-DELIVERY.md
+    - GitHub Actions: ci-cd/03-GITHUB-ACTIONS.md
+    - Azure DevOps: ci-cd/04-AZURE-DEVOPS.md
+    - Jenkins: ci-cd/05-JENKINS.md
+    - GitOps: ci-cd/06-GITOPS.md
+    - Testing in Pipelines: ci-cd/07-TESTING-IN-PIPELINES.md
+    - Security in Pipelines: ci-cd/08-SECURITY-IN-PIPELINES.md
+    - Best Practices: ci-cd/09-BEST-PRACTICES.md
+    - Anti-Patterns: ci-cd/10-ANTI-PATTERNS.md
+    - Learning Path: ci-cd/LEARNING-PATH.md
   - Commerce Systems: commerce-systems/README.md
   - Databases:
     - Overview: databases/README.md
