@@ -32,6 +32,22 @@
 - [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
+# Databases
+
+- [Overview](databases/README.md)
+- [Database Fundamentals](databases/00-OVERVIEW.md)
+- [Relational Databases](databases/01-RELATIONAL-DATABASES.md)
+- [NoSQL Databases](databases/02-NOSQL-DATABASES.md)
+- [Data Modeling](databases/03-DATA-MODELING.md)
+- [Query Optimization](databases/04-QUERY-OPTIMIZATION.md)
+- [Replication & Sharding](databases/05-REPLICATION-AND-SHARDING.md)
+- [Migrations](databases/06-MIGRATIONS.md)
+- [Caching](databases/07-CACHING.md)
+- [Connection Management](databases/08-CONNECTION-MANAGEMENT.md)
+- [Best Practices](databases/09-BEST-PRACTICES.md)
+- [Anti-Patterns](databases/10-ANTI-PATTERNS.md)
+- [Learning Path](databases/LEARNING-PATH.md)
+
 # Docker
 
 - [Overview](docker/README.md)
