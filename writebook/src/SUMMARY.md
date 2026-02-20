@@ -46,6 +46,7 @@
 - [Connection Management](databases/08-CONNECTION-MANAGEMENT.md)
 - [Best Practices](databases/09-BEST-PRACTICES.md)
 - [Anti-Patterns](databases/10-ANTI-PATTERNS.md)
+- [Schema Design Patterns](databases/11-SCHEMA-DESIGN-PATTERNS.md)
 - [Learning Path](databases/LEARNING-PATH.md)
 
 # Docker

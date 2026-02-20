@@ -428,6 +428,7 @@ For each query:
 | Order | Document | Focus Areas |
 |-------|----------|-------------|
 | 1 | [02-NOSQL-DATABASES](02-NOSQL-DATABASES.md) | Document, key-value, column-family, graph models, consistency trade-offs, use cases |
+| 2 | [11-SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | SQL and NoSQL schema patterns: multi-tenancy, event sourcing, bucket, single-table design, CQRS |
 
 ### Exercises
 
@@ -1187,6 +1188,7 @@ Evaluation Criteria:
 | 08 | [CONNECTION-MANAGEMENT](08-CONNECTION-MANAGEMENT.md) | 5 | PgBouncer, pooling modes, timeouts, connection limits |
 | 09 | [BEST-PRACTICES](09-BEST-PRACTICES.md) | 6 | Production patterns, backup, monitoring, naming conventions |
 | 10 | [ANTI-PATTERNS](10-ANTI-PATTERNS.md) | 6 | God tables, N+1 queries, EAV, OFFSET pagination |
+| 11 | [SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | 3 | Multi-tenancy, event sourcing, bucket, single-table design, CQRS |
 | — | [LEARNING-PATH](LEARNING-PATH.md) | All | This document — structured 6-phase curriculum |
 
 ---
@@ -1234,16 +1236,16 @@ Evaluation Criteria:
 
 ```
 Backend Developer:
-  00-OVERVIEW → 01-RELATIONAL → 03-DATA-MODELING → 04-QUERY-OPT → 07-CACHING → 09-BEST-PRACTICES
+  00-OVERVIEW → 01-RELATIONAL → 03-DATA-MODELING → 11-SCHEMA-PATTERNS → 04-QUERY-OPT → 07-CACHING → 09-BEST-PRACTICES
 
 Data Engineer:
-  00-OVERVIEW → 01-RELATIONAL → 02-NOSQL → 05-REPLICATION → 06-MIGRATIONS → 04-QUERY-OPT
+  00-OVERVIEW → 01-RELATIONAL → 02-NOSQL → 11-SCHEMA-PATTERNS → 05-REPLICATION → 06-MIGRATIONS → 04-QUERY-OPT
 
 DevOps / SRE:
   00-OVERVIEW → 05-REPLICATION → 08-CONNECTION-MGMT → 06-MIGRATIONS → 07-CACHING → 09-BEST-PRACTICES
 
 Architect:
-  00-OVERVIEW → All files → 09-BEST-PRACTICES → 10-ANTI-PATTERNS
+  00-OVERVIEW → All files → 11-SCHEMA-PATTERNS → 09-BEST-PRACTICES → 10-ANTI-PATTERNS
 ```
 
 ---

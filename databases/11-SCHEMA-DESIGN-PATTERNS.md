@@ -11,7 +11,7 @@
    - [Slowly Changing Dimensions](#slowly-changing-dimensions)
    - [Event Sourcing Schema](#event-sourcing-schema)
    - [State Machine Pattern](#state-machine-pattern)
-   - [Ledger / Double-Entry Pattern](#ledger--double-entry-pattern)
+   - [Ledger / Double-Entry Pattern](#ledger-double-entry-pattern)
    - [Polymorphic Associations](#polymorphic-associations)
    - [Tagging and Categorization](#tagging-and-categorization)
    - [Closure Table for Hierarchies](#closure-table-for-hierarchies)
@@ -1184,7 +1184,7 @@ Use this table to map your problem to the right pattern:
 | Tracking attribute history over time | SCD Type 2 or Type 6 | [Link](#slowly-changing-dimensions) |
 | Complete audit log of every state change | Event Sourcing | [Link](#event-sourcing-schema) |
 | Entity with well-defined lifecycle states | State Machine Pattern | [Link](#state-machine-pattern) |
-| Financial transactions, accounting | Ledger / Double-Entry | [Link](#ledger--double-entry-pattern) |
+| Financial transactions, accounting | Ledger / Double-Entry | [Link](#ledger-double-entry-pattern) |
 | Comments/reactions on multiple entity types | Polymorphic Associations | [Link](#polymorphic-associations) |
 | User-generated tags on content | Toxi Pattern | [Link](#tagging-and-categorization) |
 | Deep hierarchies with subtree queries | Closure Table | [Link](#closure-table-for-hierarchies) |
