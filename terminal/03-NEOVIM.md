@@ -1027,6 +1027,7 @@ bind-key -n 'C-l' if-shell "$is_vim" 'send-keys C-l'  'select-pane -R'
 
 ## Next Steps
 
+- **Neovim distributions** → [10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS.md](10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS.md) — LazyVim, NvChad, AstroNvim, and learning Vim keybindings everywhere
 - **Set up tmux** → [02-TMUX.md](02-TMUX.md) — Configure tmux to work seamlessly with Neovim
 - **Productivity tools** → [07-PRODUCTIVITY-TOOLS.md](07-PRODUCTIVITY-TOOLS.md) — fzf, ripgrep, and other tools that enhance Neovim
 - **Platform setup** → [04-WINDOWS-TERMINAL.md](04-WINDOWS-TERMINAL.md), [05-LINUX-TERMINAL.md](05-LINUX-TERMINAL.md), or [06-MACOS-TERMINAL.md](06-MACOS-TERMINAL.md)
