@@ -204,13 +204,16 @@ Test session persistence: save with `<prefix> Ctrl+s`, kill tmux, restart, and r
 - Configure essential plugins: Telescope, Treesitter, LSP, nvim-cmp, lualine
 - Use Neovim as an IDE with code completion, diagnostics, and navigation
 - Navigate between Neovim splits and tmux panes seamlessly
+- Evaluate Neovim distributions (LazyVim, NvChad, AstroNvim, kickstart.nvim) as alternatives to building from scratch
+- Begin building Vim keybinding muscle memory across tools
 
 ### Reading
 
 | Order | Document | Focus Areas |
 |-------|----------|-------------|
 | 1 | [03-NEOVIM](03-NEOVIM.md) | All sections — configuration through tmux integration |
-| 2 | [02-TMUX](02-TMUX.md) | vim-tmux-navigator section |
+| 2 | [10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS](10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS.md) | Neovim distributions, Vim keybinding learning resources, motions cheat sheet |
+| 3 | [02-TMUX](02-TMUX.md) | vim-tmux-navigator section |
 
 ### Exercises
 
@@ -496,7 +499,7 @@ Create a fully-configured, version-controlled, cross-platform terminal environme
 
 ```
 Developer:
-  00-OVERVIEW → 01-SHELL-FUNDAMENTALS → 02-TMUX → 03-NEOVIM → 07-PRODUCTIVITY-TOOLS
+  00-OVERVIEW → 01-SHELL-FUNDAMENTALS → 02-TMUX → 03-NEOVIM → 10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS → 07-PRODUCTIVITY-TOOLS
 
 DevOps / SRE:
   00-OVERVIEW → 01-SHELL-FUNDAMENTALS → 02-TMUX → 07-PRODUCTIVITY-TOOLS → 08-BEST-PRACTICES
@@ -505,7 +508,7 @@ New to Terminal:
   00-OVERVIEW → 01-SHELL-FUNDAMENTALS → Platform Guide (04/05/06) → 02-TMUX → LEARNING-PATH exercises
 
 Experienced User (Optimising):
-  09-ANTI-PATTERNS → 08-BEST-PRACTICES → 07-PRODUCTIVITY-TOOLS → 03-NEOVIM
+  09-ANTI-PATTERNS → 08-BEST-PRACTICES → 07-PRODUCTIVITY-TOOLS → 03-NEOVIM → 10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS
 ```
 
 ---

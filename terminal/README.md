@@ -10,6 +10,7 @@ A comprehensive guide to terminal tools and workflows — from shell fundamental
 | [01-SHELL-FUNDAMENTALS](01-SHELL-FUNDAMENTALS.md) | Bash, Zsh, Fish shells, configuration, scripting, prompt customisation | When setting up your shell environment |
 | [02-TMUX](02-TMUX.md) | Terminal multiplexer: sessions, windows, panes, plugins, scripting | When managing multiple terminal sessions |
 | [03-NEOVIM](03-NEOVIM.md) | Neovim as IDE: Lua config, plugins, LSP, debugging, navigation | When setting up a terminal-based editor |
+| [10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS](10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS.md) | LazyVim, NvChad, AstroNvim, kickstart.nvim, Vim keybindings everywhere | When choosing a Neovim distribution or learning Vim motions |
 | [04-WINDOWS-TERMINAL](04-WINDOWS-TERMINAL.md) | Windows Terminal, WSL2, PowerShell, settings.json, Windows tools | When working on Windows |
 | [05-LINUX-TERMINAL](05-LINUX-TERMINAL.md) | Alacritty, kitty, WezTerm, GPU terminals, X11/Wayland, dotfiles | When working on Linux |
 | [06-MACOS-TERMINAL](06-MACOS-TERMINAL.md) | iTerm2, Alacritty, Homebrew, macOS shell config, key bindings | When working on macOS |
@@ -57,7 +58,11 @@ A comprehensive guide to terminal tools and workflows — from shell fundamental
    - LSP, Treesitter, Telescope, and debugging with DAP
    - Terminal integration within Neovim
 
-4. **Upgrade CLI Tools** ([07-PRODUCTIVITY-TOOLS](07-PRODUCTIVITY-TOOLS.md))
+4. **Try a Neovim Distribution** ([10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS](10-VIM-DISTRIBUTIONS-AND-KEYBINDINGS.md))
+   - LazyVim, NvChad, AstroNvim, or kickstart.nvim
+   - Learn Vim keybindings across VS Code, browsers, and shells
+
+5. **Upgrade CLI Tools** ([07-PRODUCTIVITY-TOOLS](07-PRODUCTIVITY-TOOLS.md))
    - Modern replacements for traditional Unix commands
    - fzf, ripgrep, bat, eza, zoxide, delta, and more
 
@@ -149,6 +154,7 @@ delta   → Syntax-highlighting pager for git diffs
 - **Shell Fundamentals** — Bash, Zsh, Fish configuration, scripting, prompt customisation
 - **tmux** — Sessions, windows, panes, key bindings, plugins, session persistence
 - **Neovim** — Lua configuration, plugin management, LSP, debugging, navigation
+- **Vim Distributions & Keybindings** — LazyVim, NvChad, AstroNvim, kickstart.nvim, Vim motions everywhere
 - **Windows Terminal** — Settings, WSL2 integration, PowerShell, Windows package managers
 - **Linux Terminal** — GPU-accelerated emulators, X11/Wayland, font and dotfile management
 - **macOS Terminal** — iTerm2, Homebrew, macOS-specific configuration and key bindings
