@@ -1,0 +1,768 @@
+# Docker Storage and Volumes
+
+## Table of Contents
+
+1. [Overview](#overview)
+   - [Target Audience](#target-audience)
+   - [Scope](#scope)
+2. [Storage Types](#storage-types)
+   - [Storage Architecture](#storage-architecture)
+   - [Storage Types Comparison](#storage-types-comparison)
+3. [Docker Volumes](#docker-volumes)
+   - [Creating Volumes](#creating-volumes)
+   - [Managing Volumes](#managing-volumes)
+   - [Inspecting Volumes](#inspecting-volumes)
+   - [Removing Volumes](#removing-volumes)
+4. [Named Volumes vs Anonymous Volumes](#named-volumes-vs-anonymous-volumes)
+5. [Bind Mounts](#bind-mounts)
+   - [Development Workflows](#development-workflows)
+   - [Live Code Reloading](#live-code-reloading)
+6. [tmpfs Mounts](#tmpfs-mounts)
+   - [Sensitive Data](#sensitive-data)
+   - [Temporary Storage](#temporary-storage)
+7. [Volume Drivers and Plugins](#volume-drivers-and-plugins)
+   - [Local Driver](#local-driver)
+   - [NFS Volumes](#nfs-volumes)
+   - [Cloud Storage Drivers](#cloud-storage-drivers)
+8. [Storage Drivers](#storage-drivers)
+   - [Storage Driver Comparison](#storage-driver-comparison)
+   - [Selecting a Storage Driver](#selecting-a-storage-driver)
+9. [Data Persistence Patterns](#data-persistence-patterns)
+   - [Database Volumes](#database-volumes)
+   - [Shared Data Between Containers](#shared-data-between-containers)
+10. [Backup and Restore Volumes](#backup-and-restore-volumes)
+    - [Backup a Volume](#backup-a-volume)
+    - [Restore a Volume](#restore-a-volume)
+11. [Volume Best Practices](#volume-best-practices)
+12. [Next Steps](#next-steps)
+13. [Version History](#version-history)
+
+---
+
+## Overview
+
+This document provides a comprehensive guide to **Docker storage and volumes** — covering every mechanism Docker provides for persisting data, sharing files between containers, and managing the storage layer that underpins container filesystems.
+
+By default, all files created inside a container are stored on a **writable container layer**. This means the data does not persist when the container is removed, and it is difficult to move data out of the container. Docker provides three primary mechanisms for persisting data beyond the container lifecycle: **volumes**, **bind mounts**, and **tmpfs mounts**.
+
+### Target Audience
+
+- **Developers** who need persistent data for databases, caches, and application state during development
+- **DevOps Engineers** designing storage strategies for containerized workloads
+- **SREs** managing production data persistence, backups, and storage driver performance
+- **Platform Engineers** selecting volume drivers and storage backends for container platforms
+
+### Scope
+
+- Docker storage architecture and the writable container layer
+- Volumes, bind mounts, and tmpfs mounts — creation, usage, and trade-offs
+- Volume drivers and plugins for NFS, cloud storage, and distributed filesystems
+- Storage drivers (overlay2, devicemapper, btrfs, zfs)
+- Data persistence patterns for databases and shared data
+- Backup, restore, and migration of volume data
+
+---
+
+## Storage Types
+
+Docker offers three primary storage mechanisms, each suited to different use cases. Understanding when to use each type is essential for building reliable containerized applications.
+
+### Storage Architecture
+
+```
+Docker Storage Architecture
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─────────────────────────────────────────────────┐
+  │               Container Layer (R/W)             │
+  │         Ephemeral — lost when removed           │
+  └──────────┬──────────┬──────────┬────────────────┘
+             │          │          │
+     ┌───────▼───┐ ┌────▼────┐ ┌──▼──────────┐
+     │  Volumes   │ │  Bind   │ │   tmpfs     │
+     │            │ │ Mounts  │ │   Mounts    │
+     │ Managed by │ │ Host    │ │ In-memory   │
+     │ Docker     │ │ path    │ │ only        │
+     └──────┬─────┘ └────┬────┘ └─────────────┘
+            │             │
+            ▼             ▼
+  ┌──────────────┐ ┌──────────────┐
+  │ /var/lib/    │ │ Any host     │
+  │ docker/      │ │ directory    │
+  │ volumes/     │ │ or file      │
+  └──────────────┘ └──────────────┘
+```
+
+### Storage Types Comparison
+
+| Feature | Volumes | Bind Mounts | tmpfs Mounts |
+|---|---|---|---|
+| **Managed by Docker** | ✅ Yes | ❌ No | ❌ No |
+| **Host location** | `/var/lib/docker/volumes/` | Anywhere on host | Memory only |
+| **Persists after container removal** | ✅ Yes | ✅ Yes (host files remain) | ❌ No |
+| **Shareable between containers** | ✅ Yes | ✅ Yes | ❌ No |
+| **Supports volume drivers** | ✅ Yes | ❌ No | ❌ No |
+| **Pre-populated with image data** | ✅ Yes | ❌ No | ❌ No |
+| **Performance** | Near-native | Native | Fastest (RAM) |
+| **Portability** | High — works on any Docker host | Low — depends on host paths | Medium |
+| **Best for** | Databases, persistent state | Development, config files | Secrets, temp data |
+
+> **Note:** Volumes are the preferred mechanism for persisting data generated by and used by Docker containers. Unlike bind mounts, volumes are fully managed by Docker and do not depend on the directory structure of the host machine.
+
+---
+
+## Docker Volumes
+
+Volumes are the recommended way to persist data in Docker. They are created and managed by Docker, stored in a dedicated area on the host filesystem (`/var/lib/docker/volumes/`), and can be shared among multiple containers.
+
+### Creating Volumes
+
+```bash
+# Create a named volume
+docker volume create my-data
+
+# Create a volume with a specific driver
+docker volume create --driver local my-local-data
+
+# Create a volume with driver-specific options
+docker volume create --driver local \
+  --opt type=none \
+  --opt device=/data/app \
+  --opt o=bind \
+  my-bound-volume
+
+# Create a volume with labels for organization
+docker volume create --label project=myapp --label env=production app-data
+```
+
+Using a volume when running a container:
+
+```bash
+# Mount a named volume to a container
+docker run -d \
+  --name my-app \
+  -v my-data:/app/data \
+  myapp:latest
+
+# Using the --mount flag (more explicit)
+docker run -d \
+  --name my-app \
+  --mount source=my-data,target=/app/data \
+  myapp:latest
+
+# Mount a volume as read-only
+docker run -d \
+  --name my-reader \
+  -v my-data:/app/data:ro \
+  myapp:latest
+```
+
+### Managing Volumes
+
+```bash
+# List all volumes
+docker volume ls
+
+# List volumes with filter
+docker volume ls --filter driver=local
+docker volume ls --filter label=project=myapp
+
+# List dangling (unused) volumes
+docker volume ls --filter dangling=true
+```
+
+### Inspecting Volumes
+
+```bash
+# Inspect a volume
+docker volume inspect my-data
+```
+
+```json
+[
+    {
+        "CreatedAt": "2025-01-15T10:30:00Z",
+        "Driver": "local",
+        "Labels": {
+            "project": "myapp"
+        },
+        "Mountpoint": "/var/lib/docker/volumes/my-data/_data",
+        "Name": "my-data",
+        "Options": {},
+        "Scope": "local"
+    }
+]
+```
+
+### Removing Volumes
+
+```bash
+# Remove a specific volume
+docker volume rm my-data
+
+# Remove multiple volumes
+docker volume rm vol1 vol2 vol3
+
+# Remove all unused volumes (with confirmation prompt)
+docker volume prune
+
+# Remove all unused volumes without prompt
+docker volume prune -f
+
+# Remove all unused volumes including those referenced by stopped containers
+docker volume prune -a -f
+```
+
+> **Important:** Removing a volume permanently deletes all data stored in it. Docker does not provide a built-in undo mechanism for volume removal.
+
+---
+
+## Named Volumes vs Anonymous Volumes
+
+Docker distinguishes between named and anonymous volumes. Understanding the difference helps you manage data lifecycle effectively.
+
+```bash
+# Named volume — you choose the name
+docker run -d -v my-data:/app/data myapp:latest
+
+# Anonymous volume — Docker generates a random hash name
+docker run -d -v /app/data myapp:latest
+```
+
+| Aspect | Named Volumes | Anonymous Volumes |
+|---|---|---|
+| **Naming** | User-defined name | Random hash (e.g., `a1b2c3d4...`) |
+| **Discoverability** | Easy to find with `docker volume ls` | Difficult to identify |
+| **Reuse** | Mount by name across containers | Typically single-use |
+| **Lifecycle** | Persists until explicitly removed | Removed with `docker rm -v` |
+| **Dockerfile VOLUME** | Not created by `VOLUME` instruction | Created by `VOLUME` instruction |
+| **Recommended** | ✅ Production and shared data | Development or disposable data |
+
+```dockerfile
+# Dockerfile — VOLUME instruction creates anonymous volumes
+FROM postgres:16
+VOLUME /var/lib/postgresql/data
+# When run without -v, Docker creates an anonymous volume for this path
+```
+
+```bash
+# Override the anonymous volume with a named one
+docker run -d \
+  --name my-postgres \
+  -v pgdata:/var/lib/postgresql/data \
+  postgres:16
+```
+
+---
+
+## Bind Mounts
+
+Bind mounts map a **host file or directory** directly into the container. The file or directory is referenced by its absolute path on the host machine. Bind mounts are ideal for development workflows where you need live access to source code.
+
+```bash
+# Bind mount using -v flag
+docker run -d \
+  --name dev-app \
+  -v /home/user/project/src:/app/src \
+  node:20
+
+# Bind mount using --mount flag (recommended for clarity)
+docker run -d \
+  --name dev-app \
+  --mount type=bind,source=/home/user/project/src,target=/app/src \
+  node:20
+
+# Read-only bind mount
+docker run -d \
+  --name config-reader \
+  --mount type=bind,source=/etc/app/config.yaml,target=/app/config.yaml,readonly \
+  myapp:latest
+```
+
+### Development Workflows
+
+Bind mounts are the backbone of container-based development workflows. They allow you to edit code on the host and see changes reflected inside the container immediately.
+
+```bash
+# Node.js development with bind mount
+docker run -d \
+  --name node-dev \
+  -v $(pwd):/app \
+  -w /app \
+  -p 3000:3000 \
+  node:20 \
+  npm run dev
+
+# Python development with bind mount
+docker run -d \
+  --name flask-dev \
+  -v $(pwd):/app \
+  -w /app \
+  -p 5000:5000 \
+  -e FLASK_ENV=development \
+  python:3.12 \
+  flask run --host=0.0.0.0
+
+# Go development with bind mount and module cache
+docker run -d \
+  --name go-dev \
+  -v $(pwd):/app \
+  -v go-mod-cache:/go/pkg/mod \
+  -w /app \
+  -p 8080:8080 \
+  golang:1.22 \
+  go run .
+```
+
+### Live Code Reloading
+
+```
+Live Reload with Bind Mounts
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Host Machine               Container
+  ┌───────────────┐          ┌───────────────┐
+  │ ./src/app.js  │ ──bind── │ /app/src/     │
+  │ (edit file)   │  mount   │ app.js        │
+  └───────┬───────┘          └───────┬───────┘
+          │                          │
+          │  file change detected    │
+          │                          ▼
+          │                  ┌───────────────┐
+          │                  │  nodemon /     │
+          │                  │  watchdog      │
+          │                  │  restarts app  │
+          │                  └───────────────┘
+```
+
+```bash
+# Node.js with nodemon for auto-reload
+docker run -d \
+  --name node-watch \
+  -v $(pwd)/src:/app/src \
+  -w /app \
+  -p 3000:3000 \
+  node:20 \
+  npx nodemon src/index.js
+
+# Python with watchdog for auto-reload
+docker run -d \
+  --name python-watch \
+  -v $(pwd):/app \
+  -w /app \
+  -p 8000:8000 \
+  python:3.12 \
+  watchmedo auto-restart --pattern="*.py" --recursive -- python app.py
+```
+
+> **Caveat:** On macOS and Windows, bind mount performance can be significantly slower than on Linux due to the VM layer. For large projects, consider using Docker volumes with file sync (e.g., Mutagen or Docker Desktop's VirtioFS).
+
+---
+
+## tmpfs Mounts
+
+A **tmpfs mount** stores data in the host system's memory only. The data is never written to the host filesystem and is removed when the container stops. tmpfs mounts are ideal for sensitive data and temporary processing files.
+
+```bash
+# tmpfs mount using --tmpfs flag
+docker run -d \
+  --name secure-app \
+  --tmpfs /app/tmp \
+  myapp:latest
+
+# tmpfs mount with size limit and permissions
+docker run -d \
+  --name secure-app \
+  --mount type=tmpfs,target=/app/secrets,tmpfs-size=64m,tmpfs-mode=1770 \
+  myapp:latest
+
+# Multiple tmpfs mounts
+docker run -d \
+  --name worker \
+  --tmpfs /tmp \
+  --tmpfs /run \
+  myapp:latest
+```
+
+### Sensitive Data
+
+tmpfs mounts are ideal for handling secrets, tokens, and encryption keys that should never be written to disk.
+
+```bash
+# Store secrets in memory only
+docker run -d \
+  --name vault-agent \
+  --mount type=tmpfs,target=/vault/secrets,tmpfs-size=16m,tmpfs-mode=0700 \
+  vault:latest
+
+# Process sensitive data without touching disk
+docker run --rm \
+  --mount type=tmpfs,target=/tmp/decrypt,tmpfs-size=128m \
+  -v encrypted-data:/input:ro \
+  crypto-tool:latest \
+  decrypt /input/data.enc /tmp/decrypt/output
+```
+
+### Temporary Storage
+
+```bash
+# Build artifacts that only need to exist during processing
+docker run --rm \
+  --tmpfs /build:size=512m \
+  -v $(pwd)/src:/src:ro \
+  -v $(pwd)/dist:/dist \
+  build-tool:latest \
+  compile /src --output /build && cp /build/result /dist/
+
+# High-performance scratch space for data processing
+docker run -d \
+  --name data-processor \
+  --tmpfs /scratch:size=1g \
+  -v input-data:/input:ro \
+  -v output-data:/output \
+  processor:latest
+```
+
+---
+
+## Volume Drivers and Plugins
+
+Volume drivers extend Docker's storage capabilities beyond the local filesystem, enabling integration with network filesystems, cloud storage, and distributed storage backends.
+
+### Local Driver
+
+The `local` driver is the default and supports options for creating different types of local mounts.
+
+```bash
+# Standard local volume
+docker volume create --driver local app-data
+
+# Local volume with ext4 filesystem on a block device
+docker volume create --driver local \
+  --opt type=ext4 \
+  --opt device=/dev/sdb1 \
+  block-data
+
+# Local volume with a bind-like behavior
+docker volume create --driver local \
+  --opt type=none \
+  --opt device=/data/shared \
+  --opt o=bind \
+  shared-data
+```
+
+### NFS Volumes
+
+```bash
+# Create an NFS volume
+docker volume create --driver local \
+  --opt type=nfs \
+  --opt o=addr=192.168.1.100,rw,nfsvers=4 \
+  --opt device=:/exports/data \
+  nfs-data
+
+# Use NFS volume in a container
+docker run -d \
+  --name app \
+  -v nfs-data:/app/data \
+  myapp:latest
+```
+
+```
+NFS Volume Architecture
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Container A          Container B
+  ┌──────────┐         ┌──────────┐
+  │ /app/data│         │ /app/data│
+  └─────┬────┘         └─────┬────┘
+        │                     │
+        └──────┬──────────────┘
+               │
+        ┌──────▼──────┐
+        │  NFS Volume │
+        │  Driver     │
+        └──────┬──────┘
+               │
+        ┌──────▼──────┐
+        │  NFS Server │
+        │ 192.168.1.100│
+        │ :/exports/  │
+        └─────────────┘
+```
+
+### Cloud Storage Drivers
+
+```bash
+# Install the Azure File Storage plugin
+docker plugin install --grant-all-permissions \
+  docker4x/cloudstor:latest \
+  CLOUD_PLATFORM=AZURE
+
+# AWS EFS volume (using local driver with NFS)
+docker volume create --driver local \
+  --opt type=nfs \
+  --opt o=addr=fs-12345678.efs.us-east-1.amazonaws.com,nfsvers=4.1,rsize=1048576,wsize=1048576 \
+  --opt device=:/ \
+  efs-data
+
+# GCP Filestore volume (using local driver with NFS)
+docker volume create --driver local \
+  --opt type=nfs \
+  --opt o=addr=10.0.0.2,rw,nfsvers=3 \
+  --opt device=:/vol1 \
+  gcp-filestore-data
+```
+
+---
+
+## Storage Drivers
+
+Storage drivers control how **image layers and the writable container layer** are stored and managed on the host. They are separate from volume drivers and affect container filesystem performance.
+
+```
+Storage Driver Layer Model
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌─────────────────────────────┐
+  │   Writable Container Layer  │ ◀── Storage driver manages this
+  ├─────────────────────────────┤
+  │   Image Layer 4 (R/O)      │
+  ├─────────────────────────────┤
+  │   Image Layer 3 (R/O)      │
+  ├─────────────────────────────┤
+  │   Image Layer 2 (R/O)      │
+  ├─────────────────────────────┤
+  │   Image Layer 1 (R/O)      │ ◀── Base image
+  └─────────────────────────────┘
+```
+
+### Storage Driver Comparison
+
+| Driver | Backing Filesystem | Copy-on-Write | Stability | Performance | Best For |
+|---|---|---|---|---|---|
+| **overlay2** | ext4, xfs | File-level | ✅ Production-ready | Excellent | Default for most Linux distros |
+| **devicemapper** | Direct LVM | Block-level | ✅ Stable | Good (direct-lvm) | RHEL/CentOS (legacy) |
+| **btrfs** | btrfs | Subvolume snapshot | ⚠️ Requires btrfs | Good | Btrfs host filesystems |
+| **zfs** | zfs | Dataset clone | ⚠️ Requires ZFS | Good | ZFS host filesystems |
+| **vfs** | Any | No CoW (full copy) | ✅ Stable | Poor | Testing only |
+
+```bash
+# Check current storage driver
+docker info --format '{{.Driver}}'
+
+# Check storage driver details
+docker info | grep -A 5 "Storage Driver"
+```
+
+### Selecting a Storage Driver
+
+```bash
+# Configure storage driver in /etc/docker/daemon.json
+cat > /etc/docker/daemon.json <<EOF
+{
+  "storage-driver": "overlay2",
+  "storage-opts": [
+    "overlay2.override_kernel_check=true"
+  ]
+}
+EOF
+
+# Restart Docker to apply
+sudo systemctl restart docker
+
+# Verify the change
+docker info --format '{{.Driver}}'
+```
+
+> **Note:** Changing the storage driver makes existing images and containers inaccessible. Always back up important data before switching drivers.
+
+---
+
+## Data Persistence Patterns
+
+### Database Volumes
+
+Databases require persistent, reliable storage. Named volumes are the standard approach for production database containers.
+
+```bash
+# PostgreSQL with named volume
+docker run -d \
+  --name postgres \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_DB=myapp \
+  -v pgdata:/var/lib/postgresql/data \
+  -p 5432:5432 \
+  postgres:16
+
+# MySQL with named volume
+docker run -d \
+  --name mysql \
+  -e MYSQL_ROOT_PASSWORD=secret \
+  -e MYSQL_DATABASE=myapp \
+  -v mysqldata:/var/lib/mysql \
+  -p 3306:3306 \
+  mysql:8
+
+# MongoDB with named volume
+docker run -d \
+  --name mongo \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=secret \
+  -v mongodata:/data/db \
+  -p 27017:27017 \
+  mongo:7
+
+# Redis with named volume for AOF persistence
+docker run -d \
+  --name redis \
+  -v redisdata:/data \
+  -p 6379:6379 \
+  redis:7 \
+  redis-server --appendonly yes
+```
+
+### Shared Data Between Containers
+
+Multiple containers can share data through a common volume.
+
+```bash
+# Create a shared volume
+docker volume create shared-assets
+
+# Container 1: Write data
+docker run -d \
+  --name asset-builder \
+  -v shared-assets:/output \
+  builder:latest \
+  build --output /output
+
+# Container 2: Serve the data
+docker run -d \
+  --name web-server \
+  -v shared-assets:/usr/share/nginx/html:ro \
+  -p 80:80 \
+  nginx:latest
+```
+
+```
+Shared Volume Pattern
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ┌──────────────┐    ┌──────────────┐
+  │ asset-builder│    │  web-server  │
+  │ (R/W)        │    │  (R/O)       │
+  └──────┬───────┘    └──────┬───────┘
+         │  write            │  read
+         └────────┬──────────┘
+                  │
+           ┌──────▼──────┐
+           │shared-assets│
+           │   volume    │
+           └─────────────┘
+```
+
+---
+
+## Backup and Restore Volumes
+
+Docker does not provide built-in backup commands, but volumes can be backed up and restored using temporary containers.
+
+### Backup a Volume
+
+```bash
+# Backup a volume to a tar archive
+docker run --rm \
+  -v pgdata:/source:ro \
+  -v $(pwd):/backup \
+  alpine:latest \
+  tar czf /backup/pgdata-backup-$(date +%Y%m%d).tar.gz -C /source .
+
+# Backup with specific container for database consistency
+docker exec postgres pg_dumpall -U postgres > backup.sql
+
+# Scheduled backup script
+#!/bin/bash
+VOLUME_NAME="pgdata"
+BACKUP_DIR="/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+
+docker run --rm \
+  -v ${VOLUME_NAME}:/source:ro \
+  -v ${BACKUP_DIR}:/backup \
+  alpine:latest \
+  tar czf /backup/${VOLUME_NAME}-${TIMESTAMP}.tar.gz -C /source .
+
+# Retain only the last 7 backups
+find ${BACKUP_DIR} -name "${VOLUME_NAME}-*.tar.gz" -mtime +7 -delete
+```
+
+### Restore a Volume
+
+```bash
+# Create a fresh volume
+docker volume create pgdata-restored
+
+# Restore from tar archive
+docker run --rm \
+  -v pgdata-restored:/target \
+  -v $(pwd):/backup:ro \
+  alpine:latest \
+  tar xzf /backup/pgdata-backup-20250115.tar.gz -C /target
+
+# Verify the restore
+docker run --rm \
+  -v pgdata-restored:/data:ro \
+  alpine:latest \
+  ls -la /data
+
+# Restore a SQL dump
+docker exec -i postgres psql -U postgres < backup.sql
+```
+
+---
+
+## Volume Best Practices
+
+1. **Use named volumes for production data** — Named volumes are easier to manage, back up, and reference than anonymous volumes or bind mounts.
+
+2. **Mount volumes as read-only when possible** — Use the `:ro` flag to prevent containers from modifying data they only need to read, reducing the risk of accidental corruption.
+
+3. **Avoid storing application data in the writable container layer** — The container layer is ephemeral and uses copy-on-write, making it slower and non-persistent.
+
+4. **Use bind mounts only for development** — Bind mounts couple the container to the host directory structure. In production, prefer named volumes or volume drivers.
+
+5. **Set appropriate tmpfs size limits** — Without a size limit, tmpfs mounts can consume all available host memory. Always set `tmpfs-size` for production workloads.
+
+6. **Implement volume backup automation** — Schedule regular backups for critical data volumes, especially databases. Test restores periodically.
+
+7. **Clean up unused volumes regularly** — Run `docker volume prune` to reclaim disk space from orphaned anonymous volumes.
+
+8. **Use volume labels for organization** — Label volumes with `--label` to track which project, environment, or service a volume belongs to.
+
+9. **Prefer overlay2 as the storage driver** — It is the default on modern Linux distributions, battle-tested in production, and offers the best overall performance.
+
+10. **Separate data and log volumes** — Mount separate volumes for application data and logs to manage lifecycle, retention, and backup independently.
+
+---
+
+## Next Steps
+
+Continue your Docker learning journey:
+
+| File | Topic | Description |
+|---|---|---|
+| [00-OVERVIEW.md](00-OVERVIEW.md) | Docker Overview | Core Docker concepts, architecture, and CLI essentials |
+| [01-IMAGES-AND-DOCKERFILES.md](01-IMAGES-AND-DOCKERFILES.md) | Images & Dockerfiles | Building images, Dockerfile instructions, multi-stage builds |
+| [02-CONTAINER-RUNTIME.md](02-CONTAINER-RUNTIME.md) | Container Runtime | Docker Engine, containerd, runc, and container lifecycle internals |
+| [03-NETWORKING.md](03-NETWORKING.md) | Docker Networking | Network drivers, DNS discovery, port mapping, and network security |
+| [05-DOCKER-COMPOSE.md](05-DOCKER-COMPOSE.md) | Docker Compose | Multi-container applications with Compose files |
+| [06-REGISTRIES.md](06-REGISTRIES.md) | Container Registries | Image distribution, registry services, and signing |
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---|---|---|
+| 1.0 | 2025 | Initial Docker Storage and Volumes documentation |
