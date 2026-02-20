@@ -104,3 +104,14 @@
 # Observability
 
 - [Overview](observability/README.md)
+- [Fundamentals](observability/00-OVERVIEW.md)
+- [Metrics](observability/01-METRICS.md)
+- [Logging](observability/02-LOGGING.md)
+- [Distributed Tracing](observability/03-DISTRIBUTED-TRACING.md)
+- [OpenTelemetry](observability/04-OPENTELEMETRY.md)
+- [Alerting](observability/05-ALERTING.md)
+- [APM](observability/06-APM.md)
+- [SLIs, SLOs & SLAs](observability/07-SLIS-SLOS-SLAS.md)
+- [Best Practices](observability/08-BEST-PRACTICES.md)
+- [Anti-Patterns](observability/09-ANTI-PATTERNS.md)
+- [Learning Path](observability/LEARNING-PATH.md)
