@@ -7,6 +7,7 @@ A curated collection of markdown files for learning various technologies and con
 This repository is organized into the following learning areas:
 
 - **[Commerce Systems](./commerce-systems/)** - E-commerce platforms, payment systems, and online retail technologies
+- **[Databases](./databases/)** - SQL, NoSQL, data modeling, replication, sharding, caching, and database operations
 - **[Docker](./docker/)** - Container fundamentals, images, Dockerfiles, networking, storage, Compose, and security
 - **[Git](./git/)** - Version control, branching strategies, collaboration workflows, and Git best practices
 - **[.NET and C#](./dotnet-csharp/)** - .NET ecosystem, C# language, services, breaking changes, best practices, and style guide
