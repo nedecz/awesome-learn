@@ -17,6 +17,7 @@ A comprehensive guide to database fundamentals, data modeling, storage engines, 
 | [08-CONNECTION-MANAGEMENT](08-CONNECTION-MANAGEMENT.md) | Connection pooling, timeouts, resilience | When operating databases at scale |
 | [09-BEST-PRACTICES](09-BEST-PRACTICES.md) | Production patterns, backup strategies, monitoring | **Essential — production checklist** |
 | [10-ANTI-PATTERNS](10-ANTI-PATTERNS.md) | Common database mistakes and how to avoid them | **Essential — what NOT to do** |
+| [11-SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | Reusable schema patterns for SQL and NoSQL databases | When applying proven patterns to production schemas |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured 10–12 week training guide with exercises | **Start here** after the Overview |
 | [README](README.md) | This index file | Start here for navigation |
 
@@ -160,6 +161,7 @@ Serializable     → Full isolation, as if transactions execute sequentially
 - **Connection Management** — Pooling, proxies, timeouts, circuit breakers
 - **Best Practices** — Backup, monitoring, capacity planning, security
 - **Anti-Patterns** — 12 common database mistakes with examples and fixes
+- **Schema Design Patterns** — Multi-tenancy, event sourcing, bucket, single-table design, CQRS, and more
 
 ## 🤝 Contributing
 
