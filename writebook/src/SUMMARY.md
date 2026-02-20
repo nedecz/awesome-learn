@@ -131,3 +131,18 @@
 - [Best Practices](observability/08-BEST-PRACTICES.md)
 - [Anti-Patterns](observability/09-ANTI-PATTERNS.md)
 - [Learning Path](observability/LEARNING-PATH.md)
+
+# Terminal
+
+- [Overview](terminal/README.md)
+- [Terminal Fundamentals](terminal/00-OVERVIEW.md)
+- [Shell Fundamentals](terminal/01-SHELL-FUNDAMENTALS.md)
+- [tmux](terminal/02-TMUX.md)
+- [Neovim](terminal/03-NEOVIM.md)
+- [Windows Terminal](terminal/04-WINDOWS-TERMINAL.md)
+- [Linux Terminal](terminal/05-LINUX-TERMINAL.md)
+- [macOS Terminal](terminal/06-MACOS-TERMINAL.md)
+- [Productivity Tools](terminal/07-PRODUCTIVITY-TOOLS.md)
+- [Best Practices](terminal/08-BEST-PRACTICES.md)
+- [Anti-Patterns](terminal/09-ANTI-PATTERNS.md)
+- [Learning Path](terminal/LEARNING-PATH.md)
