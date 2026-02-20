@@ -1543,6 +1543,6 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 ## Version History
 
-| Version | Date | Changes | Author |
-|---------|------|---------|--------|
-| 1.0 | 2025-07-15 | Initial document — 12 anti-patterns with examples and fixes | Database Team |
+| Version | Date | Changes |
+|---|---|---|
+| 1.0 | 2025 | Initial database anti-patterns documentation |
