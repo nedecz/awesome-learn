@@ -8,14 +8,11 @@ This document covers advanced architectural patterns including CQRS (Command Que
 
 1. [CQRS Pattern](#cqrs-pattern)
 2. [Event Sourcing](#event-sourcing)
-3. [CQRS + Event Sourcing](#cqrs--event-sourcing)
+3. [CQRS + Event Sourcing](#cqrs-event-sourcing)
 4. [Outbox Pattern](#outbox-pattern)
 5. [Saga Pattern (Orchestration vs Choreography)](#saga-pattern)
 6. [Inbox Pattern](#inbox-pattern)
 7. [Backend for Frontend (BFF)](#backend-for-frontend-bff)
-8. [Strangler Fig Pattern](#strangler-fig-pattern)
-9. [Anti-Corruption Layer](#anti-corruption-layer)
-10. [Competing Consumers Pattern](#competing-consumers-pattern)
 
 ---
 

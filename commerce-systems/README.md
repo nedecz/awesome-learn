@@ -324,7 +324,7 @@ The following topics were identified during the initial documentation effort but
 
 ## 🤝 Contributing
 
-This is a living document. As you encounter new patterns, edge cases, or best practices, consider documenting them for future reference. The [Planned Topics](#-planned-topics-roadmap) section above is a good starting point for new contributions.
+This is a living document. As you encounter new patterns, edge cases, or best practices, consider documenting them for future reference. The [Planned Topics](#planned-topics-roadmap) section above is a good starting point for new contributions.
 
 ## 📝 Version History
 

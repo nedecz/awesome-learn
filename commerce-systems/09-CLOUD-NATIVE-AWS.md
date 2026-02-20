@@ -14,7 +14,7 @@ This document covers cloud-native architectures for payment systems using AWS se
 6. [EventBridge Architecture](#eventbridge-architecture)
 7. [Step Functions Workflows](#step-functions-workflows)
 8. [API Gateway](#api-gateway)
-9. [Security & Compliance](#security--compliance)
+9. [Security & Compliance](#security-compliance)
 10. [Cost Optimization](#cost-optimization)
 
 ---

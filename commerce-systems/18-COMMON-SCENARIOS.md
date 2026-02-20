@@ -8,10 +8,10 @@ Step-by-step implementation guides for the most common real-world payment scenar
 
 1. [E-Commerce Cart Checkout](#e-commerce-cart-checkout)
 2. [Subscription Billing](#subscription-billing)
-3. [Marketplace / Split Payments](#marketplace--split-payments)
+3. [Marketplace / Split Payments](#marketplace-split-payments)
 4. [Pre-Authorization and Capture](#pre-authorization-and-capture)
 5. [Invoice Payments](#invoice-payments)
-6. [Pay-What-You-Want / Donations](#pay-what-you-want--donations)
+6. [Pay-What-You-Want / Donations](#pay-what-you-want-donations)
 7. [Multi-Currency Checkout](#multi-currency-checkout)
 8. [Saved Payment Methods](#saved-payment-methods)
 9. [Partial Payments and Installments](#partial-payments-and-installments)

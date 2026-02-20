@@ -35,7 +35,7 @@
    - [Migrating Existing Files](#migrating-existing-files)
 8. [Scaling Git for Large Repos](#scaling-git-for-large-repos)
    - [Shallow Clone](#shallow-clone)
-   - [Partial Clone](#partial-clone-1)
+   - [Partial Clone](#partial-clone_1)
    - [Commit Graph](#commit-graph)
    - [Filesystem Monitor](#filesystem-monitor)
 9. [Monorepo CI/CD Strategies](#monorepo-cicd-strategies)

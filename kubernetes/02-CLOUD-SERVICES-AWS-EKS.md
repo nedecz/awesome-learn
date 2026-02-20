@@ -32,7 +32,7 @@
    - [NLB Services](#nlb-services)
 9. [Authentication and Authorization](#authentication-and-authorization)
    - [aws-auth ConfigMap](#aws-auth-configmap)
-   - [IRSA — IAM Roles for Service Accounts](#irsa--iam-roles-for-service-accounts)
+   - [IRSA — IAM Roles for Service Accounts](#irsa-iam-roles-for-service-accounts)
    - [EKS Pod Identity](#eks-pod-identity)
 10. [Cluster Autoscaler and Karpenter](#cluster-autoscaler-and-karpenter)
     - [Cluster Autoscaler](#cluster-autoscaler)

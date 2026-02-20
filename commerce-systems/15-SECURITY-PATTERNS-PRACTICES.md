@@ -10,7 +10,7 @@ Comprehensive guide to security patterns, best practices, and compliance require
 
 1. [PCI DSS Compliance](#pci-dss-compliance)
 2. [Encryption Patterns](#encryption-patterns)
-3. [Authentication & Authorization](#authentication--authorization)
+3. [Authentication & Authorization](#authentication-authorization)
 4. [Secure Communication](#secure-communication)
 5. [Data Protection](#data-protection)
 6. [Fraud Prevention](#fraud-prevention)

@@ -487,33 +487,38 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 ```
 kubernetes/
 ├── 00-OVERVIEW.md              (this file)
-├── 01-PODS-AND-WORKLOADS.md
-├── 02-SERVICES-AND-NETWORKING.md
-├── 03-STORAGE.md
-├── 04-CONFIGURATION.md
-├── 05-SECURITY-AND-RBAC.md
-├── 06-HELM-CHARTS.md
-├── 07-MONITORING-AND-LOGGING.md
-├── 08-CI-CD-PIPELINES.md
-├── 09-TROUBLESHOOTING.md
+├── 01-SERVICES.md
+├── 02-CLOUD-SERVICES-AWS-EKS.md
+├── 03-CLOUD-SERVICES-OKE.md
+├── 04-CLOUD-SERVICES-AKS.md
+├── 05-LOCAL-SETUP-KIND-MINIKUBE.md
+├── 06-MANIFESTS.md
+├── 07-CRDS-AND-OPERATORS.md
+├── 08-CONTROLLERS.md
+├── 09-NETWORKING.md
+├── 10-BEST-PRACTICES-AND-PATTERNS.md
+├── 11-ANTI-PATTERNS.md
+├── LEARNING-PATH.md
 └── README.md
 ```
 
 ## Next Steps
 
-Continue to [Pods and Workloads](01-PODS-AND-WORKLOADS.md) to learn about Deployments, ReplicaSets, StatefulSets, DaemonSets, Jobs, and CronJobs.
+Continue to [Services](01-SERVICES.md) to learn about ClusterIP, NodePort, LoadBalancer, Ingress, and service mesh patterns.
 
 ### Suggested Learning Path
 
-1. **[Pods and Workloads](01-PODS-AND-WORKLOADS.md)** — Deployments, ReplicaSets, StatefulSets, DaemonSets
-2. **[Services and Networking](02-SERVICES-AND-NETWORKING.md)** — ClusterIP, NodePort, LoadBalancer, Ingress
-3. **[Storage](03-STORAGE.md)** — PersistentVolumes, PersistentVolumeClaims, StorageClasses
-4. **[Configuration](04-CONFIGURATION.md)** — ConfigMaps, Secrets, environment variables
-5. **[Security and RBAC](05-SECURITY-AND-RBAC.md)** — Roles, ClusterRoles, ServiceAccounts, Pod Security
-6. **[Helm Charts](06-HELM-CHARTS.md)** — Packaging, templating, and managing releases
-7. **[Monitoring and Logging](07-MONITORING-AND-LOGGING.md)** — Prometheus, Grafana, Loki, EFK stack
-8. **[CI/CD Pipelines](08-CI-CD-PIPELINES.md)** — GitOps, ArgoCD, Flux, GitHub Actions
-9. **[Troubleshooting](09-TROUBLESHOOTING.md)** — Common failure modes and debugging techniques
+1. **[Services](01-SERVICES.md)** — ClusterIP, NodePort, LoadBalancer, Ingress, service mesh
+2. **[AWS EKS](02-CLOUD-SERVICES-AWS-EKS.md)** — Managed Kubernetes on Amazon Web Services
+3. **[Oracle OKE](03-CLOUD-SERVICES-OKE.md)** — Managed Kubernetes on Oracle Cloud
+4. **[Azure AKS](04-CLOUD-SERVICES-AKS.md)** — Managed Kubernetes on Microsoft Azure
+5. **[Local Setup (kind & Minikube)](05-LOCAL-SETUP-KIND-MINIKUBE.md)** — Local development clusters
+6. **[Manifests](06-MANIFESTS.md)** — Kubernetes YAML manifests and resource definitions
+7. **[CRDs & Operators](07-CRDS-AND-OPERATORS.md)** — Custom Resource Definitions and Operator pattern
+8. **[Controllers](08-CONTROLLERS.md)** — Custom controllers and reconciliation loops
+9. **[Networking](09-NETWORKING.md)** — CNI plugins, network policies, and DNS
+10. **[Best Practices & Patterns](10-BEST-PRACTICES-AND-PATTERNS.md)** — Production-ready guidelines
+11. **[Anti-Patterns](11-ANTI-PATTERNS.md)** — Common mistakes to avoid
 
 ## Support and Resources
 

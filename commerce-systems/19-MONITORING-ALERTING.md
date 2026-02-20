@@ -11,7 +11,7 @@ Payment systems demand exceptional observability. A missed alert on rising error
 3. [Distributed Tracing](#distributed-tracing)
 4. [Health Checks](#health-checks)
 5. [Application Insights Integration](#application-insights-integration)
-6. [Prometheus + Grafana Stack](#prometheus--grafana-stack)
+6. [Prometheus + Grafana Stack](#prometheus-grafana-stack)
 7. [Alert Rules](#alert-rules)
 8. [Payment-Specific Dashboards](#payment-specific-dashboards)
 9. [Incident Response Runbooks](#incident-response-runbooks)

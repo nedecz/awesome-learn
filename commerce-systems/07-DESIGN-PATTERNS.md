@@ -9,7 +9,7 @@ This comprehensive guide covers design patterns, architectural approaches, and s
 ## Table of Contents
 
 ### Part 1: Architectural Styles
-1. [Hexagonal Architecture (Ports & Adapters)](#hexagonal-architecture-ports--adapters)
+1. [Hexagonal Architecture (Ports & Adapters)](#hexagonal-architecture-ports-adapters)
 2. [Onion Architecture](#onion-architecture)
 
 ### Part 2: Resilience Patterns
@@ -21,7 +21,7 @@ This comprehensive guide covers design patterns, architectural approaches, and s
 ### Part 3: Integration Patterns
 7. [Saga Pattern](#saga-pattern)
 8. [Idempotency Pattern](#idempotency-pattern)
-9. [Rate Limiting & Throttling Pattern](#rate-limiting--throttling-pattern)
+9. [Rate Limiting & Throttling Pattern](#rate-limiting-throttling-pattern)
 10. [Reconciliation Pattern](#reconciliation-pattern)
 11. [Notification Pattern](#notification-pattern)
 12. [Priority Queue Pattern](#priority-queue-pattern)
@@ -36,8 +36,8 @@ This comprehensive guide covers design patterns, architectural approaches, and s
 19. [Multi-Currency Pattern](#multi-currency-pattern)
 20. [Payment State Machine](#payment-state-machine)
 21. [Specification Pattern](#specification-pattern)
-22. [Command Query Separation (Not CQRS)](#command-query-separation)
-23. [Memento Pattern (State Recovery)](#memento-pattern)
+22. [Command Query Separation (Not CQRS)](#command-query-separation-not-cqrs)
+23. [Memento Pattern (State Recovery)](#memento-pattern-state-recovery)
 24. [Time-Series Data Pattern](#time-series-data-pattern)
 
 ### Part 5: Infrastructure Patterns
@@ -48,7 +48,7 @@ This comprehensive guide covers design patterns, architectural approaches, and s
 29. [Valet Key Pattern](#valet-key-pattern)
 
 ### Part 6: Deployment Patterns
-30. [Blue-Green Deployment for Payments](#blue-green-deployment)
+30. [Blue-Green Deployment for Payments](#blue-green-deployment-for-payments)
 31. [Canary Release Pattern](#canary-release-pattern)
 32. [Feature Flags for Payments](#feature-flags-for-payments)
 

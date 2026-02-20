@@ -28,7 +28,7 @@ Thank you for considering contributing to Awesome Learn! This document provides 
 
 #### Markdown Format
 
-```markdown
+````markdown
 # Topic Title
 
 ## Overview
@@ -46,7 +46,7 @@ Example code or configuration
 ## Resources
 - [Link 1](url)
 - [Link 2](url)
-```
+````
 
 ### Adding a New Topic Directory
 

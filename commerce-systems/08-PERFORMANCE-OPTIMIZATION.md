@@ -15,7 +15,7 @@ Performance is critical for payment systems. This document covers optimization s
 7. [Memory Optimization](#memory-optimization)
 8. [Network Optimization](#network-optimization)
 9. [Load Testing](#load-testing)
-10. [Monitoring & Profiling](#monitoring--profiling)
+10. [Monitoring & Profiling](#monitoring-profiling)
 
 ---
 

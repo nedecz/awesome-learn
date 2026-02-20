@@ -7,11 +7,9 @@ This document covers the architectural patterns and design principles for buildi
 ## Table of Contents
 
 1. [Layered Architecture](#layered-architecture)
-2. [Service Layer Pattern](#service-layer-pattern)
-3. [Adapter Pattern](#adapter-pattern)
-4. [Strategy Pattern](#strategy-pattern)
-5. [Repository Pattern](#repository-pattern)
-6. [Event-Driven Architecture](#event-driven-architecture)
+2. [Adapter Pattern](#adapter-pattern)
+3. [Strategy Pattern](#strategy-pattern)
+4. [Event-Driven Architecture](#event-driven-architecture)
 
 ---
 

@@ -4,7 +4,7 @@
 
 1. [Overview](#overview)
 2. [Why Local Kubernetes](#why-local-kubernetes)
-3. [kind — Kubernetes IN Docker](#kind--kubernetes-in-docker)
+3. [kind — Kubernetes IN Docker](#kind-kubernetes-in-docker)
    - [Installing kind](#installing-kind)
    - [Creating Clusters](#creating-clusters)
    - [Cluster Configuration](#cluster-configuration)

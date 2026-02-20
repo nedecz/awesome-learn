@@ -12,8 +12,8 @@ This document covers cloud-native payment architectures across AWS, Azure, and G
 4. [Multi-Cloud Patterns](#multi-cloud-patterns)
 5. [Cloud-Agnostic Solutions](#cloud-agnostic-solutions)
 6. [Migration Strategies](#migration-strategies)
-7. [Kubernetes-Based Approach](#kubernetes-based-approach)
-8. [Cost Comparison](#cost-comparison)
+7. [Kubernetes-Based Architecture](#kubernetes-based-architecture)
+8. [Cost Comparison](#cost-comparison-100k-paymentsmonth)
 
 ---
 
