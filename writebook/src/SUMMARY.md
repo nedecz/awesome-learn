@@ -81,6 +81,40 @@
 - [Anti-Patterns](docker/10-ANTI-PATTERNS.md)
 - [Learning Path](docker/LEARNING-PATH.md)
 
+# Frontend Development
+
+- [Overview](frontend/README.md)
+- [Frontend Fundamentals](frontend/00-OVERVIEW.md)
+- [HTML & CSS](frontend/01-HTML-CSS.md)
+- [JavaScript Fundamentals](frontend/02-JAVASCRIPT-FUNDAMENTALS.md)
+- [TypeScript](frontend/03-TYPESCRIPT.md)
+- [Responsive Design](frontend/04-RESPONSIVE-DESIGN.md)
+- [State Management](frontend/05-STATE-MANAGEMENT.md)
+- [Performance](frontend/06-PERFORMANCE.md)
+- [Testing](frontend/07-TESTING.md)
+- [Build Tools](frontend/08-BUILD-TOOLS.md)
+- [Accessibility](frontend/09-ACCESSIBILITY.md)
+- [Best Practices](frontend/10-BEST-PRACTICES.md)
+- [Anti-Patterns](frontend/11-ANTI-PATTERNS.md)
+- [Learning Path](frontend/LEARNING-PATH.md)
+
+# Angular
+
+- [Overview](frontend/angular/README.md)
+- [Angular Fundamentals](frontend/angular/00-OVERVIEW.md)
+- [Components & Templates](frontend/angular/01-COMPONENTS-AND-TEMPLATES.md)
+- [Services & Dependency Injection](frontend/angular/02-SERVICES-AND-DEPENDENCY-INJECTION.md)
+- [Routing & Navigation](frontend/angular/03-ROUTING-AND-NAVIGATION.md)
+- [Forms](frontend/angular/04-FORMS.md)
+- [RxJS & Observables](frontend/angular/05-RXJS-AND-OBSERVABLES.md)
+- [State Management](frontend/angular/06-STATE-MANAGEMENT.md)
+- [HTTP & API Integration](frontend/angular/07-HTTP-AND-API-INTEGRATION.md)
+- [Testing](frontend/angular/08-TESTING.md)
+- [Performance](frontend/angular/09-PERFORMANCE.md)
+- [Best Practices](frontend/angular/10-BEST-PRACTICES.md)
+- [Anti-Patterns](frontend/angular/11-ANTI-PATTERNS.md)
+- [Learning Path](frontend/angular/LEARNING-PATH.md)
+
 # Git
 
 - [Overview](git/README.md)
