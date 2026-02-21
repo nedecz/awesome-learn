@@ -130,6 +130,23 @@
 - [Best Practices](git/09-BEST-PRACTICES.md)
 - [Anti-Patterns](git/10-ANTI-PATTERNS.md)
 - [Learning Path](git/LEARNING-PATH.md)
+
+# Infrastructure as Code
+
+- [Overview](infrastructure-as-code/README.md)
+- [IaC Fundamentals](infrastructure-as-code/00-OVERVIEW.md)
+- [Terraform](infrastructure-as-code/01-TERRAFORM.md)
+- [Pulumi](infrastructure-as-code/02-PULUMI.md)
+- [CloudFormation](infrastructure-as-code/03-CLOUDFORMATION.md)
+- [State Management](infrastructure-as-code/04-STATE-MANAGEMENT.md)
+- [Modules & Reuse](infrastructure-as-code/05-MODULES-AND-REUSE.md)
+- [Testing](infrastructure-as-code/06-TESTING.md)
+- [Secrets & Variables](infrastructure-as-code/07-SECRETS-AND-VARIABLES.md)
+- [Multi-Cloud](infrastructure-as-code/08-MULTI-CLOUD.md)
+- [Best Practices](infrastructure-as-code/09-BEST-PRACTICES.md)
+- [Anti-Patterns](infrastructure-as-code/10-ANTI-PATTERNS.md)
+- [Learning Path](infrastructure-as-code/LEARNING-PATH.md)
+
 # .NET and C#
 
 - [Overview](dotnet-csharp/README.md)
