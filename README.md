@@ -13,6 +13,7 @@ This repository is organized into the following learning areas:
 - **[Frontend](./frontend/)** - HTML, CSS, JavaScript, TypeScript, responsive design, state management, and build tools
   - **[Angular](./frontend/angular/)** - Angular framework, components, services, RxJS, signals, and modern Angular patterns
 - **[Git](./git/)** - Version control, branching strategies, collaboration workflows, and Git best practices
+- **[Infrastructure as Code](./infrastructure-as-code/)** - Terraform, Pulumi, CloudFormation, state management, modules, and multi-cloud IaC
 - **[.NET and C#](./dotnet-csharp/)** - .NET ecosystem, C# language, services, breaking changes, best practices, and style guide
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
