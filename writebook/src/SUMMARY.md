@@ -183,6 +183,21 @@
 - [Anti-Patterns](kubernetes/11-ANTI-PATTERNS.md)
 - [Learning Path](kubernetes/LEARNING-PATH.md)
 
+# Messaging
+
+- [Overview](messaging/README.md)
+- [Messaging Fundamentals](messaging/00-OVERVIEW.md)
+- [Apache Kafka](messaging/01-APACHE-KAFKA.md)
+- [RabbitMQ](messaging/02-RABBITMQ.md)
+- [Cloud Services](messaging/03-CLOUD-SERVICES.md)
+- [Messaging Patterns](messaging/04-PATTERNS.md)
+- [Schema Management](messaging/05-SCHEMA-MANAGEMENT.md)
+- [Reliability](messaging/06-RELIABILITY.md)
+- [Monitoring](messaging/07-MONITORING.md)
+- [Best Practices](messaging/08-BEST-PRACTICES.md)
+- [Anti-Patterns](messaging/09-ANTI-PATTERNS.md)
+- [Learning Path](messaging/LEARNING-PATH.md)
+
 # Microservices
 
 - [Overview](microservices/README.md)
