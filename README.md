@@ -20,6 +20,7 @@ This repository is organized into the following learning areas:
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
 - **[Security](./security/)** - Application security, authentication, authorization, cryptography, and DevSecOps
+- **[System Design](./system-design/)** - Architecture patterns, scalability, distributed systems, caching, load balancing, and reliability
 - **[Terminal](./terminal/)** - Terminal tools, tmux, Neovim, shell configuration, and cross-platform setup
 
 ## 🚀 Getting Started

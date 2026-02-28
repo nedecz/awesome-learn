@@ -262,3 +262,18 @@
 - [Best Practices](security/09-BEST-PRACTICES.md)
 - [Anti-Patterns](security/10-ANTI-PATTERNS.md)
 - [Learning Path](security/LEARNING-PATH.md)
+
+# System Design
+
+- [Overview](system-design/README.md)
+- [System Design Fundamentals](system-design/00-OVERVIEW.md)
+- [Scalability](system-design/01-SCALABILITY.md)
+- [Distributed Systems](system-design/02-DISTRIBUTED-SYSTEMS.md)
+- [Caching Strategies](system-design/03-CACHING-STRATEGIES.md)
+- [Load Balancing](system-design/04-LOAD-BALANCING.md)
+- [Data Partitioning](system-design/05-DATA-PARTITIONING.md)
+- [Reliability](system-design/06-RELIABILITY.md)
+- [Common Designs](system-design/07-COMMON-DESIGNS.md)
+- [Best Practices](system-design/08-BEST-PRACTICES.md)
+- [Anti-Patterns](system-design/09-ANTI-PATTERNS.md)
+- [Learning Path](system-design/LEARNING-PATH.md)
