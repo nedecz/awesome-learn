@@ -146,7 +146,7 @@ function DataLoader<T>({ url, children }: DataLoaderProps<T>) {
 TypeScript infers state types from initial values. For complex state or nullable values, provide an explicit type argument.
 
 ```tsx
-import { useState, useReducer, useMemo, useCallback } from "react";
+import { useState, useReducer, useEffect, useCallback } from "react";
 
 // Simple state — TypeScript infers `string` from the initial value
 function SearchInput() {
@@ -215,7 +215,7 @@ function Counter() {
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
-  useMemo(() => {
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedValue(value), delayMs);
     return () => clearTimeout(timer);
   }, [value, delayMs]);
