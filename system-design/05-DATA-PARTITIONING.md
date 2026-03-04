@@ -625,4 +625,4 @@ Continue to the next topic to explore messaging systems, event-driven architectu
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-20 | Initial version — horizontal/vertical partitioning, sharding strategies, consistent hashing, partition key selection, rebalancing, cross-partition queries, replication integration, common challenges |
+| 1.0 | 2026 | Initial version — horizontal/vertical partitioning, sharding strategies, consistent hashing, partition key selection, rebalancing, cross-partition queries, replication integration, common challenges |

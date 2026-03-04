@@ -572,4 +572,4 @@ Continue to the next topic to explore additional system design patterns, includi
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-10 | Initial version — CAP theorem, consistency models, consensus, distributed transactions, clocks, failure modes, replication |
+| 1.0 | 2026 | Initial version — CAP theorem, consistency models, consensus, distributed transactions, clocks, failure modes, replication |

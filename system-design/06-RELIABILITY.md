@@ -771,4 +771,4 @@ Continue to [Common Designs](07-COMMON-DESIGNS.md) to explore practical system d
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-20 | Initial version — redundancy, failover strategies, disaster recovery, fault tolerance patterns, chaos engineering, graceful degradation, health checking, incident management, SLAs/SLOs/SLIs |
+| 1.0 | 2026 | Initial version — redundancy, failover strategies, disaster recovery, fault tolerance patterns, chaos engineering, graceful degradation, health checking, incident management, SLAs/SLOs/SLIs |
