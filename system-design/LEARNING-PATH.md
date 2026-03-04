@@ -521,4 +521,4 @@ Choose one of the following systems to design end-to-end:
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.0 | 2026-07-15 | Initial release — full learning path with 6 phases, capstone project, and resources |
+| 1.0 | 2026 | Initial release — full learning path with 6 phases, capstone project, and resources |

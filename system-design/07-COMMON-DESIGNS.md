@@ -633,4 +633,4 @@ Return to [Scalability](01-SCALABILITY.md) to review horizontal and vertical sca
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-20 | Initial version — URL shortener, chat system, notification service, rate limiter, news feed, key-value store, distributed cache, design process template |
+| 1.0 | 2026 | Initial version — URL shortener, chat system, notification service, rate limiter, news feed, key-value store, distributed cache, design process template |
