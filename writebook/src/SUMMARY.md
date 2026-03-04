@@ -277,3 +277,17 @@
 - [Best Practices](system-design/08-BEST-PRACTICES.md)
 - [Anti-Patterns](system-design/09-ANTI-PATTERNS.md)
 - [Learning Path](system-design/LEARNING-PATH.md)
+
+# TypeScript
+
+- [Overview](typescript/README.md)
+- [TypeScript Fundamentals](typescript/00-OVERVIEW.md)
+- [Type System](typescript/01-TYPE-SYSTEM.md)
+- [Design Patterns](typescript/02-PATTERNS.md)
+- [Node.js & Backend](typescript/03-NODE-AND-BACKEND.md)
+- [Frontend Frameworks](typescript/04-FRONTEND-FRAMEWORKS.md)
+- [Testing](typescript/05-TESTING.md)
+- [Tooling](typescript/06-TOOLING.md)
+- [Best Practices](typescript/07-BEST-PRACTICES.md)
+- [Anti-Patterns](typescript/08-ANTI-PATTERNS.md)
+- [Learning Path](typescript/LEARNING-PATH.md)
