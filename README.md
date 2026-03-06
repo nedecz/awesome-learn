@@ -7,6 +7,7 @@ A curated collection of markdown files for learning various technologies and con
 This repository is organized into the following learning areas:
 
 - **[CI/CD](./ci-cd/)** - Continuous Integration, Continuous Delivery, pipelines, GitHub Actions, GitOps, and DevSecOps
+- **[Cloud Computing](./cloud-computing/)** - Cloud fundamentals, AWS, Azure, GCP, networking, serverless, cost optimization, and multi-cloud strategies
 - **[Commerce Systems](./commerce-systems/)** - E-commerce platforms, payment systems, and online retail technologies
 - **[Databases](./databases/)** - SQL, NoSQL, data modeling, replication, sharding, caching, and database operations
 - **[Docker](./docker/)** - Container fundamentals, images, Dockerfiles, networking, storage, Compose, and security

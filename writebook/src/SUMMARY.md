@@ -18,6 +18,21 @@
 - [Anti-Patterns](ci-cd/10-ANTI-PATTERNS.md)
 - [Learning Path](ci-cd/LEARNING-PATH.md)
 
+# Cloud Computing
+
+- [Overview](cloud-computing/README.md)
+- [Cloud Computing Fundamentals](cloud-computing/00-OVERVIEW.md)
+- [AWS](cloud-computing/01-AWS.md)
+- [Azure](cloud-computing/02-AZURE.md)
+- [GCP](cloud-computing/03-GCP.md)
+- [Networking](cloud-computing/04-NETWORKING.md)
+- [Serverless](cloud-computing/05-SERVERLESS.md)
+- [Cost Optimization](cloud-computing/06-COST-OPTIMIZATION.md)
+- [Multi-Cloud](cloud-computing/07-MULTI-CLOUD.md)
+- [Best Practices](cloud-computing/08-BEST-PRACTICES.md)
+- [Anti-Patterns](cloud-computing/09-ANTI-PATTERNS.md)
+- [Learning Path](cloud-computing/LEARNING-PATH.md)
+
 # Commerce Systems
 
 - [Overview](commerce-systems/README.md)
