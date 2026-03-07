@@ -19,6 +19,7 @@ This repository is organized into the following learning areas:
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
 - **[Messaging](./messaging/)** - Message queues, event streaming, Kafka, RabbitMQ, and cloud messaging services
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
+- **[Networking](./networking/)** - Networking fundamentals, DNS, routing, TLS, load balancing, and troubleshooting
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
 - **[Security](./security/)** - Application security, authentication, authorization, cryptography, and DevSecOps
 - **[System Design](./system-design/)** - Architecture patterns, scalability, distributed systems, caching, load balancing, and reliability
