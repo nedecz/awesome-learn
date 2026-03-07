@@ -18,6 +18,7 @@ This repository is organized into the following learning areas:
 - **[.NET and C#](./dotnet-csharp/)** - .NET ecosystem, C# language, services, breaking changes, best practices, and style guide
 - **[Kubernetes](./kubernetes/)** - Container orchestration, cloud-native technologies, and K8s ecosystem
 - **[Messaging](./messaging/)** - Message queues, event streaming, Kafka, RabbitMQ, and cloud messaging services
+- **[Networking](./networking/)** - Networking fundamentals, IP addressing, routing, DNS, TLS, load balancing, and troubleshooting
 - **[Microservices](./microservices/)** - Microservices architecture, design principles, and best practices
 - **[Observability](./observability/)** - Monitoring, logging, tracing, and system observability
 - **[Security](./security/)** - Application security, authentication, authorization, cryptography, and DevSecOps
