@@ -723,4 +723,4 @@ Continue to the next topic to explore rate limiting, circuit breakers, and other
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-20 | Initial version — L4/L7 load balancing, algorithms, health checks, session persistence, GSLB, software/hardware/cloud LBs, SSL/TLS termination, high availability |
+| 1.0 | 2026 | Initial version — L4/L7 load balancing, algorithms, health checks, session persistence, GSLB, software/hardware/cloud LBs, SSL/TLS termination, high availability |

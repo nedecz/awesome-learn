@@ -780,4 +780,4 @@ Continue to the next topic to explore additional system design concepts includin
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-15 | Initial version — cache patterns, eviction policies, CDN caching, application-level caching, query caching, invalidation, consistency, monitoring |
+| 1.0 | 2026 | Initial version — cache patterns, eviction policies, CDN caching, application-level caching, query caching, invalidation, consistency, monitoring |

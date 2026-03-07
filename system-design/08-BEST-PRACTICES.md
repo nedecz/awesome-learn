@@ -691,6 +691,6 @@ Return to [Common System Designs](07-COMMON-DESIGNS.md) to see these best practi
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-10 | Initial release — design process, requirements, estimation, API and database design |
-| 1.1 | 2026-03-15 | Added scalability, reliability, and security best practices |
-| 1.2 | 2026-06-01 | Added monitoring, documentation standards, and interview tips |
+| 1.0 | 2026 | Initial release — design process, requirements, estimation, API and database design |
+| 1.1 | 2026 | Added scalability, reliability, and security best practices |
+| 1.2 | 2026 | Added monitoring, documentation standards, and interview tips |

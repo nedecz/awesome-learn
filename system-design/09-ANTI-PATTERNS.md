@@ -553,6 +553,6 @@ Return to [Best Practices](08-BEST-PRACTICES.md) for guidance on how to design s
 
 | Version | Date | Changes |
 |---|---|---|
-| 1.0 | 2026-01-15 | Initial release — premature optimization, SPOF, CAP theorem, monolithic database |
-| 1.1 | 2026-04-10 | Added synchronous everything, cache without strategy, no capacity planning |
-| 1.2 | 2026-07-01 | Added tight coupling, ignoring failure modes, poor data partitioning |
+| 1.0 | 2026 | Initial release — premature optimization, SPOF, CAP theorem, monolithic database |
+| 1.1 | 2026 | Added synchronous everything, cache without strategy, no capacity planning |
+| 1.2 | 2026 | Added tight coupling, ignoring failure modes, poor data partitioning |

@@ -23,6 +23,7 @@ This repository is organized into the following learning areas:
 - **[Security](./security/)** - Application security, authentication, authorization, cryptography, and DevSecOps
 - **[System Design](./system-design/)** - Architecture patterns, scalability, distributed systems, caching, load balancing, and reliability
 - **[Terminal](./terminal/)** - Terminal tools, tmux, Neovim, shell configuration, and cross-platform setup
+- **[TypeScript](./typescript/)** - TypeScript language, type system, design patterns, full-stack development, testing, and tooling
 
 ## 🚀 Getting Started
 
