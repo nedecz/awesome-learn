@@ -213,6 +213,21 @@
 - [Anti-Patterns](messaging/09-ANTI-PATTERNS.md)
 - [Learning Path](messaging/LEARNING-PATH.md)
 
+# Networking
+
+- [Overview](networking/README.md)
+- [Networking Fundamentals](networking/00-OVERVIEW.md)
+- [OSI and TCP/IP](networking/01-OSI-AND-TCP-IP.md)
+- [IP Addressing and Subnetting](networking/02-IP-ADDRESSING-AND-SUBNETTING.md)
+- [Routing and Switching](networking/03-ROUTING-AND-SWITCHING.md)
+- [DNS and Name Resolution](networking/04-DNS-AND-NAME-RESOLUTION.md)
+- [HTTP, TLS and Load Balancing](networking/05-HTTP-TLS-AND-LOAD-BALANCING.md)
+- [Network Security](networking/06-NETWORK-SECURITY.md)
+- [Troubleshooting and Observability](networking/07-TROUBLESHOOTING-AND-OBSERVABILITY.md)
+- [Best Practices](networking/08-BEST-PRACTICES.md)
+- [Anti-Patterns](networking/09-ANTI-PATTERNS.md)
+- [Learning Path](networking/LEARNING-PATH.md)
+
 # Microservices
 
 - [Overview](microservices/README.md)
