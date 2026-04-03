@@ -32,6 +32,7 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [23-MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) | Service decomposition, API gateway, contracts | When splitting into microservices |
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | Payment methods, flows, and multi-provider comparison | When choosing or adding payment methods |
 | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | Terms, abbreviations, and .NET examples for e-commerce & subscription flows (dunning, MRR, churn, proration, and 40+ more) | As a reference at any stage |
+| [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | Payment types per country, card challenges, regulations (USA, EU, India, Brazil, Mexico, China, Japan, Singapore) | When expanding to new regions |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -320,6 +321,8 @@ The following topics were identified during the initial documentation effort but
 | Event-Driven Architecture (dedicated guide) | ✅ Complete | [22-EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) |
 | Microservices Patterns (dedicated guide) | ✅ Complete | [23-MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) |
 | Payment Methods & Flows (dedicated guide) | ✅ Complete | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) |
+| E-Commerce & Subscription Glossary | ✅ Complete | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) |
+| Regional Payment Methods & Regulations | ✅ Complete | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) |
 
 > All planned topics have been promoted to dedicated documents.
 

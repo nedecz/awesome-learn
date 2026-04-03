@@ -1,0 +1,47 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🇮🇳 Customer selects UPI] --> B{Payment Type}
+
+    B -->|One-time| C[UPI Collect Request]
+    B -->|Recurring| D[e-Mandate Registration\nRBI Mandate]
+    B -->|Intent / QR| E[UPI Intent / QR Code]
+
+    C --> F[Enter UPI ID\ne.g. user@upibank]
+    F --> G[Payment Gateway sends\ncollect request to NPCI]
+    G --> H[NPCI routes to\ncustomer PSP bank]
+    H --> I[Push notification\non customer UPI app]
+    I --> J{Customer approves\n& enters UPI PIN?}
+    J -->|Yes| K[Bank debits account]
+    J -->|No / Timeout| L[❌ Payment failed\nor expired]
+    J -->|Declined| L
+
+    K --> M[NPCI confirms to\npayment gateway]
+    M --> N[✅ Payment confirmed\ninstantly]
+
+    D --> O[Collect mandate details:\nAmount, frequency, validity]
+    O --> P[Customer approves mandate\nvia UPI PIN]
+    P --> Q{RBI e-Mandate Rules}
+    Q --> R[Auto-debit ≤ ₹15,000:\nNo pre-notification needed]
+    Q --> S[Auto-debit > ₹15,000:\n24hr pre-notification +\ncustomer approval each time]
+    R --> T[Scheduled auto-debit\nvia NPCI]
+    S --> U[Send pre-debit\nnotification]
+    U --> V{Customer approves?}
+    V -->|Yes| T
+    V -->|No| W[❌ Debit blocked\nby customer]
+    T --> N
+
+    E --> X[Generate UPI\ndeep link or QR]
+    X --> Y[Customer scans QR\nor opens in UPI app]
+    Y --> Z[Customer enters\nUPI PIN in own app]
+    Z --> K
+
+    N --> AA{Regulatory\nCompliance}
+    AA --> AB[₹2 lakh per\ntransaction limit]
+    AA --> AC[TCS 1% on overseas\nremittances > ₹7 lakh/year]
+    AA --> AD[GSTIN required for\nB2B > ₹50,000]
+
+    style A fill:#4A90D9,color:#fff
+    style N fill:#7ED321,color:#fff
+    style L fill:#D0021B,color:#fff
+    style W fill:#D0021B,color:#fff
+    style Q fill:#F5A623,color:#fff

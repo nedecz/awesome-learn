@@ -381,6 +381,7 @@ These documents cover niche topics. Read them as your project requires:
 | [07-DESIGN-PATTERNS](07-DESIGN-PATTERNS.md) | Full 39-pattern reference — revisit as you encounter specific problems |
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | When adding new payment methods or expanding to new regions |
 | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | When you need quick definitions of dunning, MRR, ARR, churn, proration, and other e-commerce/subscription terms |
+| [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | When expanding internationally — payment types, card challenges, and regulations by country |
 
 ---
 
@@ -455,3 +456,5 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 22 | [EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) | 5 |
 | 23 | [MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) | 5 |
 | 24 | [PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | 3, 7 |
+| 25 | [ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | 7 |
+| 26 | [REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | 7 |
