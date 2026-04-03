@@ -384,6 +384,13 @@ These documents cover niche topics. Read them as your project requires:
 | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | When expanding internationally — payment types, card challenges, and regulations by country |
 | [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | When choosing, comparing, or migrating between payment providers and orchestrators |
 | [28-ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) | When verifying customer addresses, implementing KYC, or preventing fraud and chargebacks |
+| [29-INVENTORY-ORDER-FULFILLMENT](29-INVENTORY-ORDER-FULFILLMENT.md) | When building inventory management, order lifecycle, or fulfillment workflows |
+| [30-SUBSCRIPTION-BILLING-ADVANCED](30-SUBSCRIPTION-BILLING-ADVANCED.md) | When implementing usage-based billing, dunning, or advanced subscription features |
+| [31-MARKETPLACE-PLATFORM-PAYMENTS](31-MARKETPLACE-PLATFORM-PAYMENTS.md) | When building multi-vendor marketplace payment and payout flows |
+| [32-RETURNS-REFUNDS-RMA](32-RETURNS-REFUNDS-RMA.md) | When implementing return authorization, refund processing, or exchange workflows |
+| [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | When implementing ASC 606 compliance, deferred revenue, or financial reporting |
+| [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | When building coupon systems, promotion rules, dynamic pricing, or loyalty programs |
+| [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | When implementing GDPR/CCPA compliance, consent management, or data subject requests |
 
 ---
 
@@ -462,3 +469,10 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 26 | [REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | 7 |
 | 27 | [PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | 7 |
 | 28 | [ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) | 7 |
+| 29 | [INVENTORY-ORDER-FULFILLMENT](29-INVENTORY-ORDER-FULFILLMENT.md) | 7 |
+| 30 | [SUBSCRIPTION-BILLING-ADVANCED](30-SUBSCRIPTION-BILLING-ADVANCED.md) | 7 |
+| 31 | [MARKETPLACE-PLATFORM-PAYMENTS](31-MARKETPLACE-PLATFORM-PAYMENTS.md) | 7 |
+| 32 | [RETURNS-REFUNDS-RMA](32-RETURNS-REFUNDS-RMA.md) | 7 |
+| 33 | [REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | 7 |
+| 34 | [DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | 7 |
+| 35 | [DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | 7 |
