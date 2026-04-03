@@ -1,0 +1,44 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Choose Payment Provider] --> B{Business Type?}
+
+    B -->|Global SaaS / Marketplace| C{Primary Region?}
+    B -->|Regional / Single-Market| D{Target Market?}
+    B -->|Enterprise / High Volume| E[Consider Adyen or Worldpay]
+
+    C -->|North America + EU| F[Stripe or Braintree]
+    C -->|Global with LatAm / Asia| G[Adyen or Stripe + Regional PSP]
+    C -->|Marketplace / Platform| H[Stripe Connect or Adyen for Platforms]
+
+    D -->|🇮🇳 India| I[Razorpay or Cashfree]
+    D -->|🇧🇷 Brazil| J[PagSeguro or EBANX]
+    D -->|🇲🇽 Mexico| K[Conekta or Stripe MX]
+    D -->|🇯🇵 Japan| L[GMO or Komoju]
+    D -->|🇸🇬 🇮🇩 SEA| M[Xendit or 2C2P]
+    D -->|🇨🇳 China| N[Adyen or Airwallex]
+
+    E --> O{Need Multi-Provider?}
+    O -->|Yes| P[Add Orchestrator:\nSpreedly, Primer, or Gr4vy]
+    O -->|No| Q[Single Enterprise PSP]
+
+    F --> R{Need Orchestration?}
+    G --> R
+    H --> R
+    I --> R
+    J --> R
+    K --> R
+    L --> R
+    M --> R
+    N --> R
+    Q --> R
+
+    R -->|Yes - Multi-provider routing| S[Payment Orchestration Layer]
+    R -->|No - Single provider| T[Direct Integration]
+
+    S --> U[✅ Go-live]
+    T --> U
+
+    style A fill:#4A90D9,color:#fff
+    style U fill:#7ED321,color:#fff
+    style S fill:#F5A623,color:#fff
+    style P fill:#F5A623,color:#fff

@@ -1,0 +1,45 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+flowchart TD
+    A[Customer contacts\nissuing bank] --> B[Cardholder files dispute]
+    B --> C[Issuing bank initiates chargeback]
+    C --> D[Card network notifies acquirer]
+    D --> E[Acquirer notifies payment processor]
+    E --> F[Processor notifies merchant\nvia webhook]
+
+    F --> G[💰 Funds provisionally\nreversed from merchant]
+    G --> H[Dispute fee charged\n$15–$100]
+
+    H --> I{Merchant response}
+    I -->|Accept chargeback| J[❌ Merchant absorbs loss]
+    I -->|Contest dispute| K[Gather evidence]
+
+    K --> L[Submit evidence package]
+    L --> M{Evidence includes}
+    M --> N[Receipts & invoices]
+    M --> O[Delivery confirmation]
+    M --> P[Customer communications]
+    M --> Q[Terms of service]
+    M --> R[AVS / CVV match proof]
+
+    N & O & P & Q & R --> S[Submit to processor\nwithin 7–21 day deadline]
+
+    S --> T[Processor forwards\nto card network]
+    T --> U[Card network reviews]
+    U --> V[Issuing bank decision]
+
+    V --> W{Outcome}
+    W -->|Merchant wins| X[✅ Funds returned\nto merchant]
+    W -->|Merchant loses| Y[❌ Chargeback upheld]
+
+    X --> Z{Merchant action}
+    Y --> Z
+    Z --> AA[Update chargeback rate]
+    AA --> AB{Rate > 1%?}
+    AB -->|Yes| AC[⚠️ Risk of account\ntermination]
+    AB -->|No| AD[Continue monitoring]
+
+    style A fill:#D0021B,color:#fff
+    style G fill:#F5A623,color:#fff
+    style X fill:#7ED321,color:#fff
+    style Y fill:#D0021B,color:#fff
+    style AC fill:#D0021B,color:#fff

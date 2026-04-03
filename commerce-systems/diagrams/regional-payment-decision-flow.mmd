@@ -1,0 +1,53 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer Location Detected] --> B{Region?}
+
+    B -->|🇺🇸 USA| C[Cards, ACH, Apple Pay,\nGoogle Pay, PayPal]
+    B -->|🇪🇺 Europe| D{Sub-region?}
+    B -->|🇮🇳 India| E[UPI, Netbanking, Wallets,\nRuPay Cards]
+    B -->|🇧🇷 Brazil| F[Pix, Boleto,\nLocal Cards]
+    B -->|🇲🇽 Mexico| G[OXXO, SPEI,\nLocal Cards]
+    B -->|🇯🇵 Japan| H[Konbini, PayPay,\nJCB Cards]
+    B -->|🇸🇬 Singapore| I[PayNow, GrabPay,\nCards]
+    B -->|🇨🇳 China| J[WeChat Pay, Alipay,\nUnionPay]
+
+    D -->|🇳🇱 Netherlands| D1[iDEAL + Cards]
+    D -->|🇩🇪 Germany| D2[Giropay, SOFORT,\nKlarna, Cards]
+    D -->|🇵🇱 Poland| D3[Przelewy24,\nBLIK, Cards]
+    D -->|🇧🇪 Belgium| D4[Bancontact + Cards]
+    D -->|🇫🇷 France| D5[Carte Bancaire + Cards]
+    D -->|General EU| D6[SEPA, Cards,\nKlarna, PayPal]
+
+    C --> K{SCA / 3DS\nRequired?}
+    D1 --> K
+    D2 --> K
+    D3 --> K
+    D4 --> K
+    D5 --> K
+    D6 --> K
+    E --> L{RBI e-Mandate\nRequired?}
+    F --> M[Central Bank\nPix Settlement]
+    G --> N[SAT Tax\nReporting]
+    H --> O[PSP License\nRequired]
+    I --> P[MAS\nRegulated]
+    J --> Q[PBOC\nLicensing]
+
+    K -->|Card: Yes PSD2/SCA| R[3DS2 Authentication]
+    K -->|Bank Transfer: No| S[Direct Bank Flow]
+    L -->|Recurring: Yes| T[e-Mandate Registration]
+    L -->|One-time: No| U[UPI Collect / Pay]
+
+    R --> V[✅ Process Payment]
+    S --> V
+    T --> V
+    U --> V
+    M --> V
+    N --> V
+    O --> V
+    P --> V
+    Q --> V
+
+    style A fill:#4A90D9,color:#fff
+    style V fill:#7ED321,color:#fff
+    style R fill:#F5A623,color:#fff
+    style T fill:#F5A623,color:#fff

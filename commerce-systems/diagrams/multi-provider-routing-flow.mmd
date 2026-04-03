@@ -1,0 +1,51 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Payment Request] --> B[Payment Orchestration Layer]
+
+    B --> C{Routing Decision}
+
+    C -->|Card US/EU| D[Primary: Stripe]
+    C -->|Card India| E[Primary: Razorpay]
+    C -->|UPI India| F[Razorpay UPI]
+    C -->|Pix Brazil| G[Primary: EBANX / PagSeguro]
+    C -->|OXXO Mexico| H[Primary: Conekta]
+    C -->|WeChat/Alipay| I[Primary: Adyen]
+    C -->|SEA Wallets| J[Primary: Xendit]
+    C -->|Fallback| K[Secondary Provider]
+
+    D --> L{Stripe Healthy?}
+    L -->|Yes| M[Process via Stripe]
+    L -->|No - Circuit Open| N[Failover to Adyen]
+
+    E --> O{Razorpay Healthy?}
+    O -->|Yes| P[Process via Razorpay]
+    O -->|No| Q[Failover to Cashfree]
+
+    M --> R{Result}
+    N --> R
+    P --> R
+    Q --> R
+    F --> R
+    G --> R
+    H --> R
+    I --> R
+    J --> R
+    K --> R
+
+    R -->|Success| S[✅ Payment Confirmed]
+    R -->|Soft Decline| T[Retry with alternate provider]
+    R -->|Hard Decline| U[❌ Payment Failed]
+
+    T --> C
+
+    B --> V[Orchestrator Features]
+    V --> W[Token vault - PCI scope reduction]
+    V --> X[Smart routing - cost optimization]
+    V --> Y[Unified reporting - single dashboard]
+    V --> Z[Provider health - circuit breaker]
+
+    style A fill:#4A90D9,color:#fff
+    style S fill:#7ED321,color:#fff
+    style U fill:#D0021B,color:#fff
+    style T fill:#F5A623,color:#fff
+    style B fill:#F5A623,color:#fff

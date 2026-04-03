@@ -1,0 +1,51 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer in Country A\npays Merchant in Country B] --> B[Payment initiated\nin local currency]
+
+    B --> C{Payment Method}
+    C -->|International Card| D[Card Network\nVisa / Mastercard / Amex]
+    C -->|Local Method| E[❌ Not available\ncross-border]
+    C -->|Digital Wallet| F[PayPal / Apple Pay]
+
+    D --> G[Issuing Bank\nCountry A]
+    G --> H{Cross-border\nchecks}
+
+    H --> I[FX Rate Applied\nby card network]
+    H --> J[Cross-border Fee\n0.5–1.5% additional]
+    H --> K{SCA / 3DS\nrequired?}
+
+    K -->|EU cardholder| L[PSD2 SCA Required\n3DS2 Authentication]
+    K -->|India cardholder| M[RBI Additional Factor\nOTP / PIN required]
+    K -->|US cardholder| N[No SCA mandate\nbut 3DS optional]
+    K -->|Other| O[Issuer discretion]
+
+    L --> P[Customer authenticates]
+    M --> P
+    N --> P
+    O --> P
+
+    P --> Q{Issuer Decision}
+    Q -->|Approved| R[Authorization in\nlocal currency A]
+    Q -->|Declined| S[❌ Cross-border\ndecline]
+    Q -->|Soft Decline| T[Retry with\nlocal acquirer]
+
+    R --> U[Acquiring Bank\nCountry B]
+    U --> V[Settlement in\nmerchant currency B]
+
+    V --> W{Tax / Withholding}
+    W -->|India: TCS 1%| X[Tax collected\nat source]
+    W -->|Brazil: IOF 6.38%| Y[Financial operations\ntax applied]
+    W -->|EU: VAT reverse charge| Z[VAT handled\nby merchant]
+    W -->|USA: No withholding| AA[Direct settlement]
+
+    X --> AB[💰 Merchant receives\nnet amount]
+    Y --> AB
+    Z --> AB
+    AA --> AB
+
+    style A fill:#4A90D9,color:#fff
+    style S fill:#D0021B,color:#fff
+    style E fill:#D0021B,color:#fff
+    style AB fill:#7ED321,color:#fff
+    style L fill:#F5A623,color:#fff
+    style M fill:#F5A623,color:#fff

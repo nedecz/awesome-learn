@@ -1,0 +1,40 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer initiates payment] --> B{Payment Method}
+    B -->|Card| C[Tokenize card data]
+    B -->|Bank Transfer| D[ACH / SEPA / EFT]
+    B -->|Digital Wallet| E[Apple Pay / Google Pay]
+    
+    C --> F[Send to Payment Gateway]
+    D --> F
+    E --> F
+
+    F --> G{3D Secure Required?}
+    G -->|Yes| H[Redirect to 3DS challenge]
+    H --> I{Customer authenticated?}
+    I -->|Yes| J[Authorization request]
+    I -->|No| K[❌ Payment failed]
+    G -->|No| J
+
+    J --> L[Payment Gateway → Processor]
+    L --> M[Processor → Card Network]
+    M --> N[Card Network → Issuing Bank]
+
+    N --> O{Issuer decision}
+    O -->|Approved| P[✅ Authorization hold placed]
+    O -->|Declined| K
+
+    P --> Q{Capture method}
+    Q -->|Immediate| R[Auto-capture]
+    Q -->|Manual| S[Merchant captures later]
+    S --> R
+
+    R --> T[Settlement - 1 to 3 business days]
+    T --> U[Funds transferred to Acquirer]
+    U --> V[Acquirer deposits to Merchant]
+    V --> W[💰 Merchant receives payout]
+
+    style A fill:#4A90D9,color:#fff
+    style K fill:#D0021B,color:#fff
+    style P fill:#7ED321,color:#fff
+    style W fill:#7ED321,color:#fff

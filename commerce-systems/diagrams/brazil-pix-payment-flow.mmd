@@ -1,0 +1,45 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🇧🇷 Customer selects Pix] --> B{Pix Flow Type}
+
+    B -->|QR Code / Copy-Paste| C[Merchant generates\nPix QR code via API]
+    B -->|Pix by Proxy| D[Customer enters\nCPF, email, or phone]
+
+    C --> E[Display QR code\nto customer]
+    E --> F[Customer opens\nbanking app]
+    F --> G[Scans QR code\nor pastes Pix code]
+
+    D --> H[PSP resolves Pix key\nvia DICT directory]
+
+    G --> I{Customer confirms\npayment in bank app}
+    H --> I
+
+    I -->|Approved| J[Instant settlement\nvia Central Bank SPI]
+    I -->|Declined| K[❌ Payment failed]
+    I -->|Timeout 30min| L[❌ QR code expired]
+
+    J --> M[Central Bank settles\nin real-time 24/7/365]
+    M --> N[Webhook notification\nto merchant]
+    N --> O[✅ Payment confirmed\nwithin seconds]
+
+    O --> P{Regulatory\nCompliance}
+    P --> Q[CPF/CNPJ required\nfor all participants]
+    P --> R[Central Bank\nPix regulation]
+    P --> S[IOF tax on\nforeign transactions]
+    P --> T[Anti-fraud: Pix\ntransaction limits]
+
+    T --> U{Time-based Limits}
+    U --> V[Daytime 6am–8pm:\nFull limit applies]
+    U --> W[Nighttime 8pm–6am:\nR$1,000 default limit]
+
+    R --> X{Merchant Requirements}
+    X --> Y[Register Pix keys\nwith PSP]
+    X --> Z[Implement webhook\nfor instant confirmation]
+    X --> AA[Support refund via\nPix Devolução]
+
+    style A fill:#4A90D9,color:#fff
+    style O fill:#7ED321,color:#fff
+    style K fill:#D0021B,color:#fff
+    style L fill:#D0021B,color:#fff
+    style R fill:#F5A623,color:#fff
+    style T fill:#F5A623,color:#fff

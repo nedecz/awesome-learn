@@ -1,0 +1,50 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+flowchart TD
+    A[🛒 Customer places order] --> B[Order created]
+    B --> C{Payment authorized?}
+    C -->|No| D[❌ Order failed]
+    C -->|Yes| E[Order confirmed]
+
+    E --> F{Stock available?}
+    F -->|No - all items| G[Backorder created]
+    F -->|Partial| H[Split into sub-orders]
+    F -->|Yes| I[Order processing]
+    G --> I
+    H --> I
+
+    I --> J{Fulfillment type}
+    J -->|Physical goods| K[Pick items from warehouse]
+    J -->|Digital goods| L[Provision access / license]
+    J -->|Subscription| M[Activate subscription]
+    J -->|Dropship| N[Forward to supplier]
+
+    K --> O[Pack items]
+    O --> P[Generate shipping label]
+    P --> Q[Ship to customer]
+    Q --> R[Tracking number sent]
+    R --> S{Delivered?}
+    S -->|Yes| T[✅ Order fulfilled]
+    S -->|Failed delivery| U[Return to warehouse]
+    U --> Q
+
+    L --> T
+    M --> T
+    N --> Q
+
+    T --> V[Capture payment]
+    V --> W[Order completed]
+
+    W --> X{Customer action}
+    X -->|Return request| Y[RMA process]
+    Y --> Z{Return approved?}
+    Z -->|Yes| AA[Customer ships back]
+    AA --> AB[Inspect return]
+    AB --> AC{Condition OK?}
+    AC -->|Yes| AD[Issue refund]
+    AC -->|No| AE[Partial refund or reject]
+    Z -->|No| AF[Return denied]
+
+    style A fill:#4A90D9,color:#fff
+    style D fill:#D0021B,color:#fff
+    style T fill:#7ED321,color:#fff
+    style W fill:#7ED321,color:#fff
