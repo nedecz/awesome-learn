@@ -63,6 +63,7 @@
 - [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
 - [E-Commerce & Subscription Glossary](commerce-systems/25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md)
 - [Regional Payment Methods](commerce-systems/26-REGIONAL-PAYMENT-METHODS.md)
+- [Payment Provider Deep Dive](commerce-systems/27-PAYMENT-PROVIDER-DEEP-DIVE.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
 # Databases

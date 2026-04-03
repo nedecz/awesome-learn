@@ -382,6 +382,7 @@ These documents cover niche topics. Read them as your project requires:
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | When adding new payment methods or expanding to new regions |
 | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | When you need quick definitions of dunning, MRR, ARR, churn, proration, and other e-commerce/subscription terms |
 | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | When expanding internationally — payment types, card challenges, and regulations by country |
+| [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | When choosing, comparing, or migrating between payment providers and orchestrators |
 
 ---
 
@@ -458,3 +459,4 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 24 | [PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | 3, 7 |
 | 25 | [ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | 7 |
 | 26 | [REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | 7 |
+| 27 | [PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | 7 |

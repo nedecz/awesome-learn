@@ -33,6 +33,7 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | Payment methods, flows, and multi-provider comparison | When choosing or adding payment methods |
 | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | Terms, abbreviations, and .NET examples for e-commerce & subscription flows (dunning, MRR, churn, proration, and 40+ more) | As a reference at any stage |
 | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | Payment types per country, card challenges, regulations (USA, EU, India, Brazil, Mexico, China, Japan, Singapore) | When expanding to new regions |
+| [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | Detailed provider comparison (Stripe, PayPal, Adyen, Checkout.com, Razorpay, EBANX, Xendit, etc.), orchestrators, migration strategies | When choosing or switching payment providers |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -323,6 +324,7 @@ The following topics were identified during the initial documentation effort but
 | Payment Methods & Flows (dedicated guide) | ✅ Complete | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) |
 | E-Commerce & Subscription Glossary | ✅ Complete | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) |
 | Regional Payment Methods & Regulations | ✅ Complete | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) |
+| Payment Provider Deep Dive | ✅ Complete | [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) |
 
 > All planned topics have been promoted to dedicated documents.
 
