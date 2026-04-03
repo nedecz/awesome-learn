@@ -13,7 +13,10 @@ A comprehensive reference of terms, abbreviations, and concepts used in e-commer
 7. [E-Commerce Flow Terms](#e-commerce-flow-terms)
 8. [Product & Pricing Strategy Terms](#product--pricing-strategy-terms)
 9. [Customer Retention & Growth Terms](#customer-retention--growth-terms)
-10. [Quick Reference Abbreviations](#quick-reference-abbreviations)
+10. [Tax, Currency & Regulatory Terms](#tax-currency--regulatory-terms)
+11. [Inventory & Supply Chain Terms](#inventory--supply-chain-terms)
+12. [Flow Diagrams](#flow-diagrams)
+13. [Quick Reference Abbreviations](#quick-reference-abbreviations)
 
 ---
 
@@ -1030,6 +1033,99 @@ public async Task CaptureAsync(string paymentIntentId)
 
 The transfer of funds from the customer's bank (issuing bank) to the merchant's bank account (acquiring bank). Settlement typically takes 1–3 business days after capture. Funds pass through the card network (Visa, Mastercard) which applies interchange fees before the acquirer receives the funds. Settlement can be daily (each transaction settles individually) or batch (all transactions for the day settle together). The settlement amount equals the captured amount minus interchange and processing fees.
 
+### **Void**
+
+The cancellation of an authorized transaction before it has been captured or settled. Unlike a refund, a void releases the authorization hold immediately and no funds are transferred. Voids are preferable to refunds because they incur no processing fees and the customer sees the hold disappear rather than a charge followed by a credit.
+
+```csharp
+public async Task<bool> VoidOrRefundAsync(string paymentIntentId)
+{
+    var intent = await _paymentIntentService.GetAsync(paymentIntentId);
+
+    if (intent.Status == "requires_capture")
+    {
+        // Not yet captured — void (cancel) the authorization
+        await _paymentIntentService.CancelAsync(paymentIntentId);
+        return true;
+    }
+
+    if (intent.Status == "succeeded")
+    {
+        // Already captured — must refund instead
+        await _refundService.CreateAsync(new RefundCreateOptions
+        {
+            PaymentIntent = paymentIntentId
+        });
+        return true;
+    }
+
+    return false;
+}
+```
+
+### **Pre-authorization (Pre-auth)**
+
+An authorization for an estimated amount that may be adjusted before capture. Common in hospitality (hotels authorize the room rate + incidentals) and car rentals. The pre-auth places a hold for the maximum expected amount; the final captured amount can be less than or equal to the pre-authorized amount.
+
+| Industry | Pre-auth Amount | Final Capture |
+|----------|----------------|---------------|
+| Hotels | Room rate + 20% for incidentals | Actual room + minibar charges |
+| Car rental | Estimated rental + deposit | Actual rental + fuel/damage |
+| Gas station | $100 hold | Actual pump amount |
+| Restaurants | Meal total | Meal + tip |
+
+### **Payout**
+
+The transfer of settled funds from the payment processor to the merchant's bank account. Payouts can be daily, weekly, or on a custom schedule. The payout amount is the sum of settled transactions minus refunds, chargebacks, and processor fees for the period. Also called a **disbursement**.
+
+### **Ledger**
+
+An immutable, append-only record of all financial transactions in the system. Each entry is a debit or credit to a specific account. Ledgers are the foundation of double-entry bookkeeping in commerce systems and must balance (total debits = total credits). A well-designed ledger enables accurate reconciliation, audit trails, and financial reporting.
+
+```csharp
+public enum LedgerEntryType { Debit, Credit }
+
+public record LedgerEntry(
+    Guid Id,
+    Guid AccountId,
+    LedgerEntryType Type,
+    decimal Amount,
+    string Currency,
+    string Description,
+    Guid? ReferenceId,       // e.g., PaymentId, RefundId
+    string ReferenceType,    // e.g., "Payment", "Refund", "Chargeback"
+    DateTime CreatedAt);
+
+public class LedgerService
+{
+    public async Task RecordPaymentAsync(Guid customerId, Guid merchantId, decimal amount)
+    {
+        var entries = new[]
+        {
+            new LedgerEntry(Guid.NewGuid(), customerId, LedgerEntryType.Debit,
+                amount, "usd", "Payment for order", null, "Payment", DateTime.UtcNow),
+            new LedgerEntry(Guid.NewGuid(), merchantId, LedgerEntryType.Credit,
+                amount, "usd", "Revenue from order", null, "Payment", DateTime.UtcNow)
+        };
+        await _ledgerRepository.AppendAsync(entries);
+    }
+}
+```
+
+### **Escrow**
+
+A financial arrangement where a third party holds funds on behalf of a buyer and seller until the transaction conditions are met. In marketplaces, escrow protects both parties: the buyer's payment is held until the seller delivers, and the seller is guaranteed payment upon delivery. Stripe Connect and PayPal for Marketplaces provide escrow-like functionality through their platform payment flows.
+
+### **Webhook Retry / Delivery Guarantee**
+
+Payment providers retry webhook deliveries when the merchant's endpoint returns a non-2xx response. Retry schedules use exponential backoff (e.g., Stripe retries up to 3 days). Your webhook handler must be idempotent — processing the same event twice should have no adverse effect. Best practice is to store the event ID and skip duplicates.
+
+| Provider | Max Retries | Retry Window | Strategy |
+|----------|-------------|-------------|----------|
+| Stripe | ~16 retries | Up to 3 days | Exponential backoff |
+| PayPal | ~15 retries | Up to 3 days | Exponential backoff |
+| Adyen | Configurable | Up to 24 hours | Fixed intervals |
+
 ### **Refund**
 
 The return of funds to a customer, either full or partial, after a completed payment.
@@ -1620,16 +1716,230 @@ public class CustomerHealthScoreCalculator
 
 ---
 
+## Tax, Currency & Regulatory Terms
+
+### **Sales Tax**
+
+A consumption tax imposed by government on the sale of goods and services, collected by the merchant at the point of sale and remitted to the tax authority. In the US, sales tax rates vary by state, county, and city — a single order may be subject to multiple overlapping jurisdictions. After the 2018 *South Dakota v. Wayfair* Supreme Court decision, merchants have **economic nexus** obligations in states where they exceed revenue or transaction thresholds, even without physical presence.
+
+| Concept | Description |
+|---------|-------------|
+| **Nexus** | A sufficient connection to a state that triggers tax collection obligations |
+| **Physical nexus** | Office, warehouse, employee, or inventory in a state |
+| **Economic nexus** | Exceeding revenue or transaction thresholds (typically $100K or 200 transactions) |
+| **Tax-exempt** | Certain buyers (nonprofits, resellers) or products are exempt from sales tax |
+| **Tax holiday** | Temporary periods where certain goods are exempt (e.g., back-to-school) |
+
+### **VAT** — Value Added Tax
+
+A consumption tax applied at each stage of the supply chain in most countries outside the US (EU, UK, Canada GST, Australia GST). Unlike sales tax, VAT is collected at every step — each business in the chain charges VAT on its output and deducts VAT paid on its inputs, remitting only the difference to the tax authority. For digital services sold to EU consumers, the **OSS (One-Stop Shop)** simplifies filing across all member states.
+
+```
+Customer pays: Product price + VAT
+Merchant remits: Output VAT − Input VAT
+```
+
+### **Tax Provider / Tax Engine**
+
+A third-party service that calculates the correct tax for each transaction based on product type, customer location, and applicable regulations. Tax engines handle the complexity of jurisdiction lookups, product taxability rules, exemption certificates, and rate changes. Major providers: Avalara, TaxJar, Vertex.
+
+### **Currency / FX (Foreign Exchange)**
+
+When selling internationally, transactions may occur in a currency different from the merchant's settlement currency. The FX rate applied at settlement determines the actual revenue received. Key considerations include **presentment currency** (what the customer pays in), **settlement currency** (what the merchant receives), and FX margin (the spread the processor charges above the mid-market rate, typically 1–2%).
+
+| Term | Definition |
+|------|-----------|
+| **Presentment currency** | Currency shown to and charged from the customer |
+| **Settlement currency** | Currency the merchant receives in their bank account |
+| **Multi-currency pricing** | Setting explicit prices per currency (avoids FX volatility) |
+| **Dynamic currency conversion (DCC)** | Allowing the customer to pay in their home currency at point of sale |
+| **FX margin** | The spread above mid-market rate, charged by the processor |
+
+### **Revenue Recognition (ASC 606 / IFRS 15)**
+
+The accounting principle that revenue must be recognized when performance obligations are satisfied, not when cash is received. For subscriptions, this means revenue from an annual prepayment is recognized monthly (1/12 per month). The five-step model: (1) Identify the contract, (2) Identify performance obligations, (3) Determine the transaction price, (4) Allocate the price, (5) Recognize revenue as obligations are fulfilled.
+
+### **PSD2** — Payment Services Directive 2
+
+An EU regulation that governs electronic payments and mandates Strong Customer Authentication (SCA) for online transactions. PSD2 also enables Open Banking by requiring banks to provide APIs for third-party access (with customer consent). Key impacts on e-commerce: SCA requirements for card payments, exemptions for low-risk/low-value transactions, and the rise of bank-to-bank payment methods.
+
+### **GDPR Implications for Commerce**
+
+The EU General Data Protection Regulation affects e-commerce systems that process personal data of EU residents. Key requirements include: explicit consent for marketing emails, the right to data portability and deletion, data breach notification within 72 hours, and maintaining records of processing activities. Payment data stored for recurring billing must have a clear legal basis (contract performance).
+
+---
+
+## Inventory & Supply Chain Terms
+
+### **Inventory Management**
+
+The process of tracking, ordering, and managing stock levels to meet customer demand while minimizing carrying costs. Key strategies include JIT (Just-In-Time), safety stock, reorder points, and demand forecasting. Effective inventory management prevents both stockouts (lost sales) and overstock (tied-up capital).
+
+```csharp
+public class InventoryService
+{
+    public async Task<InventoryStatus> CheckAndReserveAsync(
+        string sku, int quantity, Guid orderId)
+    {
+        var item = await _inventoryRepo.GetBySkuAsync(sku);
+
+        if (item.AvailableQuantity < quantity)
+            return new InventoryStatus(false, item.AvailableQuantity, sku);
+
+        // Reserve stock for this order (soft lock until payment confirmed)
+        item.Reserve(quantity, orderId);
+        await _inventoryRepo.UpdateAsync(item);
+
+        if (item.AvailableQuantity <= item.ReorderPoint)
+            await _alertService.NotifyLowStockAsync(sku, item.AvailableQuantity);
+
+        return new InventoryStatus(true, item.AvailableQuantity, sku);
+    }
+}
+
+public record InventoryStatus(bool IsAvailable, int RemainingStock, string Sku);
+```
+
+### **Safety Stock**
+
+Extra inventory held as a buffer against demand variability and supply chain delays. The optimal safety stock level balances the cost of holding excess inventory against the cost of stockouts (lost sales, backorders, customer dissatisfaction).
+
+```
+Safety Stock = Z × σ × √L
+```
+
+Where Z = service level factor (e.g., 1.65 for 95%), σ = standard deviation of demand, L = lead time in days.
+
+### **Reorder Point (ROP)**
+
+The inventory level at which a new purchase order should be placed to replenish stock before it runs out.
+
+```
+Reorder Point = (Average Daily Demand × Lead Time) + Safety Stock
+```
+
+### **Dead Stock**
+
+Inventory that has not sold and is unlikely to sell — often due to obsolescence, seasonal changes, or poor demand forecasting. Dead stock ties up capital and warehouse space. Strategies to clear dead stock include deep discounts, bundling with popular items, donation (for tax write-offs), and liquidation channels.
+
+### **SKU Rationalization**
+
+The process of analyzing the product catalog to identify underperforming SKUs for removal and high-performing SKUs for investment. The Pareto principle often applies: ~20% of SKUs generate ~80% of revenue.
+
+### **Lead Time**
+
+The total time from placing a purchase order with a supplier to receiving the goods in the warehouse. Lead time includes manufacturing time, shipping time, and customs/inspection time. Longer lead times require higher safety stock levels.
+
+### **ABC Analysis**
+
+A categorization method for inventory management based on value and volume:
+
+| Category | % of SKUs | % of Revenue | Management Approach |
+|----------|-----------|-------------|---------------------|
+| **A items** | ~20% | ~80% | Tight control, frequent review, accurate forecasting |
+| **B items** | ~30% | ~15% | Moderate control, periodic review |
+| **C items** | ~50% | ~5% | Minimal control, infrequent review, larger safety stock |
+
+---
+
+## Flow Diagrams
+
+Visual diagrams for key e-commerce and payment flows. Each diagram is available as a Mermaid source file (`.mmd`) and a pre-rendered PNG.
+
+> **Diagram source files**: [`diagrams/`](diagrams/) directory
+
+### Payment Processing Flow
+
+The end-to-end flow from customer payment initiation through authorization, capture, and settlement.
+
+![Payment Processing Flow](diagrams/payment-processing-flow.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/payment-processing-flow.mmd`](diagrams/payment-processing-flow.mmd)
+
+</details>
+
+### Subscription Lifecycle
+
+State transitions for a subscription from creation through trial, active billing, dunning, pause, and cancellation.
+
+![Subscription Lifecycle](diagrams/subscription-lifecycle.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/subscription-lifecycle.mmd`](diagrams/subscription-lifecycle.mmd)
+
+</details>
+
+### Dunning Flow
+
+The automated payment recovery process when a subscription payment fails.
+
+![Dunning Flow](diagrams/dunning-flow.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/dunning-flow.mmd`](diagrams/dunning-flow.mmd)
+
+</details>
+
+### Order Fulfillment Flow
+
+The lifecycle of an order from placement through payment, fulfillment, delivery, and potential returns.
+
+![Order Fulfillment Flow](diagrams/order-fulfillment-flow.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/order-fulfillment-flow.mmd`](diagrams/order-fulfillment-flow.mmd)
+
+</details>
+
+### Checkout Flow
+
+The customer journey from shopping cart through payment to order confirmation.
+
+![Checkout Flow](diagrams/checkout-flow.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/checkout-flow.mmd`](diagrams/checkout-flow.mmd)
+
+</details>
+
+### Chargeback & Dispute Flow
+
+The chargeback process from customer dispute through evidence submission and resolution.
+
+![Chargeback & Dispute Flow](diagrams/chargeback-dispute-flow.png)
+
+<details>
+<summary>View Mermaid source</summary>
+
+See [`diagrams/chargeback-dispute-flow.mmd`](diagrams/chargeback-dispute-flow.mmd)
+
+</details>
+
+---
+
 ## Quick Reference Abbreviations
 
 | Abbreviation | Full Term | Context |
 |---|---|---|
 | **3DS / 3DS2** | 3-Domain Secure | Authentication protocol for online card payments |
 | **3PL** | Third-Party Logistics | Outsourced fulfillment provider |
+| **ABC** | ABC Analysis | Inventory categorization by value |
 | **ACH** | Automated Clearing House | US electronic bank transfer network |
 | **AOV** | Average Order Value | E-commerce revenue metric |
 | **ARR** | Annual Recurring Revenue | SaaS financial metric |
 | **ARPU** | Average Revenue Per User | Unit economics metric |
+| **ASC 606** | Accounting Standards Codification 606 | US revenue recognition standard |
 | **BIN / IIN** | Bank / Issuer Identification Number | First digits of a card number |
 | **BNPL** | Buy Now, Pay Later | Short-term installment financing |
 | **BOGO** | Buy One Get One | Promotional pricing strategy |
@@ -1637,26 +1947,35 @@ public class CustomerHealthScoreCalculator
 | **B2C** | Business to Consumer | Sales channel descriptor |
 | **CAC** | Customer Acquisition Cost | Unit economics metric |
 | **CVV / CVC** | Card Verification Value / Code | Card security code |
+| **DCC** | Dynamic Currency Conversion | Customer pays in home currency |
 | **EFT** | Electronic Funds Transfer | Umbrella term for digital money movement |
 | **EMV** | Europay Mastercard Visa | Global chip card standard |
+| **FX** | Foreign Exchange | Currency conversion |
+| **GDPR** | General Data Protection Regulation | EU data privacy regulation |
 | **GMV** | Gross Merchandise Value | Total platform transaction volume |
 | **GRR** | Gross Revenue Retention | Subscription retention metric (losses only) |
+| **GST** | Goods and Services Tax | Consumption tax (AU, CA, IN, NZ) |
+| **IFRS 15** | International Financial Reporting Standard 15 | Revenue recognition standard |
+| **JIT** | Just-In-Time | Inventory strategy minimizing stock |
 | **LTV / CLV** | (Customer) Lifetime Value | Unit economics metric |
 | **MAP** | Minimum Advertised Price | Manufacturer-set minimum retail advertising price |
 | **MDR** | Merchant Discount Rate | Total fee merchants pay for card acceptance |
 | **MRR** | Monthly Recurring Revenue | Core SaaS billing metric |
 | **NDR / NRR** | Net Dollar / Revenue Retention | Subscription retention metric (incl. expansion) |
 | **NPS** | Net Promoter Score | Customer satisfaction metric (−100 to +100) |
+| **OSS** | One-Stop Shop | EU VAT simplification for digital services |
 | **PAN** | Primary Account Number | 16-digit card number |
 | **PCI DSS** | Payment Card Industry Data Security Standard | Compliance standard for card data |
 | **PSD2** | Payment Services Directive 2 | EU regulation requiring SCA |
 | **RFM** | Recency, Frequency, Monetary | Customer segmentation framework |
 | **RMA** | Return Merchandise Authorization | Product return tracking process |
+| **ROP** | Reorder Point | Inventory replenishment trigger level |
 | **SAQ** | Self-Assessment Questionnaire | PCI DSS compliance self-audit |
 | **SCA** | Strong Customer Authentication | EU two-factor payment requirement |
 | **SEPA** | Single Euro Payments Area | EU bank transfer network |
 | **SKU** | Stock Keeping Unit | Product variant identifier |
 | **SaaS** | Software as a Service | Cloud software delivery model |
+| **VAT** | Value Added Tax | Consumption tax (EU, UK, and others) |
 
 ---
 

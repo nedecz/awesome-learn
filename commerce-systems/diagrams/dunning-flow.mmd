@@ -1,0 +1,40 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+flowchart TD
+    A[🔴 Payment fails] --> B[Enter dunning state]
+    B --> C[Set subscription status: PastDue]
+    C --> D[Classify decline code]
+
+    D --> E{Decline category}
+    E -->|Transient error| F[Retry in 1 hour]
+    E -->|Insufficient funds| G[Retry in 3 days]
+    E -->|Card expired| H[Send update card email\nRetry after 7 days]
+    E -->|Hard decline\nDo not honor| I[Flag for manual review]
+    E -->|Card blocked\nFraud| J[Do not retry\nSuspend immediately]
+
+    F --> K{Retry succeeds?}
+    G --> K
+    H --> K
+
+    K -->|Yes| L[✅ Payment recovered]
+    L --> M[Status → Active]
+    M --> N[Send recovery confirmation]
+
+    K -->|No| O{Attempts remaining?}
+    O -->|Yes| P[Schedule next retry\nwith backoff]
+    P --> Q[Send dunning email\nDay 3 / 7 / 14]
+    Q --> K
+
+    O -->|No| R[Max retries exhausted]
+    R --> S[Send final notice email]
+    S --> T{Grace period active?}
+    T -->|Yes| U[Suspend access\nbut keep subscription]
+    T -->|No| V[❌ Cancel subscription]
+    U --> W[Wait for customer action]
+    W -->|Customer updates card| K
+    W -->|Grace period expires| V
+    V --> X[Involuntary churn recorded]
+
+    style A fill:#D0021B,color:#fff
+    style L fill:#7ED321,color:#fff
+    style V fill:#D0021B,color:#fff
+    style M fill:#7ED321,color:#fff

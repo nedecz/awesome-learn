@@ -1,0 +1,36 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333'}}}%%
+stateDiagram-v2
+    [*] --> Incomplete: Customer starts checkout
+    Incomplete --> Trialing: Initial payment confirmed\n(if trial enabled)
+    Incomplete --> Active: Initial payment confirmed\n(no trial)
+    Incomplete --> [*]: Payment abandoned
+
+    Trialing --> Active: Trial ends +\npayment succeeds
+    Trialing --> Cancelled: Trial ends +\nno payment method
+
+    Active --> PastDue: Payment fails
+    Active --> Paused: Customer requests pause
+    Active --> Cancelled: Customer cancels\nor admin cancels
+
+    PastDue --> Active: Payment recovered\n(dunning success)
+    PastDue --> Cancelled: Dunning exhausted\n(involuntary churn)
+
+    Paused --> Active: Pause period ends\nor customer resumes
+    Paused --> Cancelled: Customer cancels\nwhile paused
+
+    Cancelled --> Active: Winback / resubscribe
+
+    note right of Active
+        Billing runs automatically
+        each cycle (monthly/annual)
+    end note
+
+    note right of PastDue
+        Grace period applies
+        Dunning retries in progress
+    end note
+
+    note right of Paused
+        No billing during pause
+        Access may be restricted
+    end note

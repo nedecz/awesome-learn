@@ -1,0 +1,53 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'lineColor': '#333'}}}%%
+flowchart TD
+    A[🛒 Shopping Cart] --> B{Guest or Account?}
+    B -->|Guest| C[Enter email]
+    B -->|Logged in| D[Load saved info]
+    B -->|New account| E[Create account]
+    C --> F
+    D --> F
+    E --> F
+
+    F[Shipping Information] --> G{Digital or Physical?}
+    G -->|Digital| I[Skip shipping]
+    G -->|Physical| H[Enter shipping address]
+    H --> J[Calculate shipping options]
+    J --> K[Customer selects shipping]
+
+    I --> L[Calculate Tax / VAT]
+    K --> L
+
+    L --> M{Coupon / Promo code?}
+    M -->|Yes| N[Validate & apply discount]
+    M -->|No| O[Order summary]
+    N --> O
+
+    O --> P[Select payment method]
+    P --> Q{Payment type}
+    Q -->|Saved card| R[One-click pay]
+    Q -->|New card| S[Enter card details\nHosted form - PCI compliant]
+    Q -->|BNPL| T[Redirect to BNPL provider]
+    Q -->|Digital wallet| U[Apple Pay / Google Pay]
+    Q -->|Bank transfer| V[ACH / SEPA redirect]
+
+    R --> W[Process payment]
+    S --> W
+    T --> W
+    U --> W
+    V --> W
+
+    W --> X{3DS required?}
+    X -->|Yes| Y[3DS authentication]
+    Y --> Z{Auth success?}
+    Z -->|Yes| AA[✅ Payment authorized]
+    Z -->|No| AB[❌ Payment failed]
+    AB --> P
+    X -->|No| AA
+
+    AA --> AC[Create order]
+    AC --> AD[Send confirmation email]
+    AD --> AE[🎉 Order confirmed]
+
+    style A fill:#4A90D9,color:#fff
+    style AB fill:#D0021B,color:#fff
+    style AE fill:#7ED321,color:#fff
