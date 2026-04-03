@@ -1,0 +1,63 @@
+name: Build Book
+
+on:
+  workflow_dispatch:
+    inputs:
+      mdbook_version:
+        description: "mdBook version to use"
+        required: false
+        default: "latest"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build mdBook (HTML + PDF)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: ${{ inputs.mdbook_version }}
+
+      - name: Cache cargo registry and mdbook-pdf
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/mdbook-pdf
+          key: cargo-mdbook-pdf-${{ runner.os }}
+
+      - name: Install mdbook-pdf
+        run: |
+          command -v mdbook-pdf || cargo install mdbook-pdf --locked
+        env:
+          CARGO_TERM_COLOR: always
+
+      - name: Install Chromium
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser
+
+      - name: Build book
+        run: mdbook build writebook
+
+      - name: Upload PDF ebook
+        uses: actions/upload-artifact@v4
+        with:
+          name: awesome-learn-ebook-pdf
+          path: writebook/book/pdf/output.pdf
+          retention-days: 30
+
+      - name: Upload HTML book
+        uses: actions/upload-artifact@v4
+        with:
+          name: awesome-learn-book-html
+          path: writebook/book/html
+          retention-days: 30
