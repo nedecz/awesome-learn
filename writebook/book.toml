@@ -19,3 +19,5 @@ enable = true
 
 [output.pdf]
 optional = true
+timeout = 1800
+trying-times = 2
