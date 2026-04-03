@@ -380,6 +380,7 @@ These documents cover niche topics. Read them as your project requires:
 | [12-TAX-AND-MULTI-PROVIDER](12-TAX-AND-MULTI-PROVIDER.md) | When you need tax calculation or multi-gateway routing |
 | [07-DESIGN-PATTERNS](07-DESIGN-PATTERNS.md) | Full 39-pattern reference — revisit as you encounter specific problems |
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | When adding new payment methods or expanding to new regions |
+| [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | When you need quick definitions of dunning, MRR, ARR, churn, proration, and other e-commerce/subscription terms |
 
 ---
 

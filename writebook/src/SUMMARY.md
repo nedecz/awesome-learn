@@ -61,6 +61,7 @@
 - [Event-Driven Architecture](commerce-systems/22-EVENT-DRIVEN-ARCHITECTURE.md)
 - [Microservices Patterns](commerce-systems/23-MICROSERVICES-PATTERNS.md)
 - [Payment Methods & Flows](commerce-systems/24-PAYMENT-METHODS-AND-FLOWS.md)
+- [E-Commerce & Subscription Glossary](commerce-systems/25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
 # Databases

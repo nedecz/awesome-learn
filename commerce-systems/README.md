@@ -31,6 +31,7 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [22-EVENT-DRIVEN-ARCHITECTURE](22-EVENT-DRIVEN-ARCHITECTURE.md) | Domain events, Outbox, Saga, message brokers | When building event-driven payment flows |
 | [23-MICROSERVICES-PATTERNS](23-MICROSERVICES-PATTERNS.md) | Service decomposition, API gateway, contracts | When splitting into microservices |
 | [24-PAYMENT-METHODS-AND-FLOWS](24-PAYMENT-METHODS-AND-FLOWS.md) | Payment methods, flows, and multi-provider comparison | When choosing or adding payment methods |
+| [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | Terms, abbreviations, and .NET examples for e-commerce & subscription flows (dunning, MRR, churn, proration, and 40+ more) | As a reference at any stage |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
