@@ -383,6 +383,7 @@ These documents cover niche topics. Read them as your project requires:
 | [25-ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | When you need quick definitions of dunning, MRR, ARR, churn, proration, and other e-commerce/subscription terms |
 | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | When expanding internationally — payment types, card challenges, and regulations by country |
 | [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | When choosing, comparing, or migrating between payment providers and orchestrators |
+| [28-ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) | When verifying customer addresses, implementing KYC, or preventing fraud and chargebacks |
 
 ---
 
@@ -460,3 +461,4 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 25 | [ECOMMERCE-SUBSCRIPTION-GLOSSARY](25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md) | 7 |
 | 26 | [REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | 7 |
 | 27 | [PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | 7 |
+| 28 | [ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) | 7 |

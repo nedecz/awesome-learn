@@ -64,6 +64,7 @@
 - [E-Commerce & Subscription Glossary](commerce-systems/25-ECOMMERCE-SUBSCRIPTION-GLOSSARY.md)
 - [Regional Payment Methods](commerce-systems/26-REGIONAL-PAYMENT-METHODS.md)
 - [Payment Provider Deep Dive](commerce-systems/27-PAYMENT-PROVIDER-DEEP-DIVE.md)
+- [Address Verification & Fraud Prevention](commerce-systems/28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
 # Databases
