@@ -28,7 +28,7 @@ This document covers essential best practices for building production-grade .NET
 ### Scope
 
 - Async/await patterns and common pitfalls
-- Memory management with Span<T>, IDisposable, and pooling
+- Memory management with Span\<T\>, IDisposable, and pooling
 - Exception handling, null safety, and LINQ usage
 - Performance optimization and benchmarking
 - Security hardening and OWASP considerations

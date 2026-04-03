@@ -285,7 +285,7 @@ C# has evolved rapidly with annual releases. Below are the key features introduc
 | **Real-time applications** | SignalR provides built-in WebSocket support |
 | **Background processing** | Worker services and hosted service patterns |
 | **Cross-platform desktop** | MAUI for iOS, Android, macOS, Windows |
-| **High-performance systems** | Span<T>, AOT, and low-level control |
+| **High-performance systems** | Span\<T\>, AOT, and low-level control |
 | **gRPC services** | First-class gRPC support in ASP.NET Core |
 | **Enterprise integration** | Extensive library ecosystem via NuGet |
 

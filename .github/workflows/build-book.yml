@@ -40,13 +40,16 @@ jobs:
         env:
           CARGO_TERM_COLOR: always
 
-      - name: Install Chromium
+      - name: Setup Chrome for PDF generation
         run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
+          google-chrome --version || (wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+            && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list \
+            && sudo apt-get update && sudo apt-get install -y google-chrome-stable)
 
       - name: Build book
         run: mdbook build writebook
+        env:
+          CHROME: /usr/bin/google-chrome
 
       - name: Upload PDF ebook
         uses: actions/upload-artifact@v4

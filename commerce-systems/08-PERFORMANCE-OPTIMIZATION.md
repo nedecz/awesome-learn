@@ -836,7 +836,7 @@ finally
 }
 ```
 
-### 2. Span<T> for String Operations
+### 2. Span\<T\> for String Operations
 
 ```csharp
 public class PaymentIdGenerator

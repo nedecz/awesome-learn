@@ -442,6 +442,6 @@ After completing all four phases, you should be able to:
 - [ ] Apply async/await patterns correctly throughout the call stack
 - [ ] Manage configuration with the Options pattern
 - [ ] Build background services with graceful shutdown
-- [ ] Optimize performance with Span<T>, pooling, and benchmarking
+- [ ] Optimize performance with Span\<T\>, pooling, and benchmarking
 - [ ] Secure applications with authentication, authorization, and OWASP mitigations
 - [ ] Deploy containerized .NET apps with health checks and observability
