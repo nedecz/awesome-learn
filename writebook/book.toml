@@ -11,3 +11,6 @@ build-dir = "book"
 [output.html]
 git-repository-url = "https://github.com/nedecz/awesome-learn"
 edit-url-template = "https://github.com/nedecz/awesome-learn/edit/main/{path}"
+
+[output.pdf]
+optional = true
