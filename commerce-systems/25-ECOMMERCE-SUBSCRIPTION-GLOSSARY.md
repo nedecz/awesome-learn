@@ -1302,6 +1302,8 @@ An order placed for a product that is currently out of stock. The merchant accep
 
 A feature allowing customers to save products they're interested in for future purchase. Wishlists serve as intent signals — merchants can send price-drop notifications or low-stock alerts to drive conversions. Wishlists also provide valuable data for demand forecasting and personalization.
 
+### **Reconciliation**
+
 The process of matching payment provider records against your internal database to ensure every charge, refund, and payout is accounted for. Critical for accounting accuracy and fraud detection.
 
 ```csharp
