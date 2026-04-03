@@ -65,6 +65,13 @@
 - [Regional Payment Methods](commerce-systems/26-REGIONAL-PAYMENT-METHODS.md)
 - [Payment Provider Deep Dive](commerce-systems/27-PAYMENT-PROVIDER-DEEP-DIVE.md)
 - [Address Verification & Fraud Prevention](commerce-systems/28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md)
+- [Inventory & Order Fulfillment](commerce-systems/29-INVENTORY-ORDER-FULFILLMENT.md)
+- [Advanced Subscription Billing](commerce-systems/30-SUBSCRIPTION-BILLING-ADVANCED.md)
+- [Marketplace & Platform Payments](commerce-systems/31-MARKETPLACE-PLATFORM-PAYMENTS.md)
+- [Returns, Refunds & RMA](commerce-systems/32-RETURNS-REFUNDS-RMA.md)
+- [Revenue Recognition & Reporting](commerce-systems/33-REVENUE-RECOGNITION-REPORTING.md)
+- [Discount & Promotion Engine](commerce-systems/34-DISCOUNT-PROMOTION-ENGINE.md)
+- [Data Privacy & Compliance](commerce-systems/35-DATA-PRIVACY-COMPLIANCE.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
 # Databases

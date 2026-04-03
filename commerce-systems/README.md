@@ -35,6 +35,13 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) | Payment types per country, card challenges, regulations (USA, EU, India, Brazil, Mexico, China, Japan, Singapore) | When expanding to new regions |
 | [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) | Detailed provider comparison (Stripe, PayPal, Adyen, Checkout.com, Razorpay, EBANX, Xendit, etc.), orchestrators, migration strategies | When choosing or switching payment providers |
 | [28-ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) | AVS, address validation, KYC, 3D Secure, device fingerprinting, fraud scoring, chargeback prevention, ML fraud detection | When verifying customers and preventing fraud |
+| [29-INVENTORY-ORDER-FULFILLMENT](29-INVENTORY-ORDER-FULFILLMENT.md) | Stock allocation, order lifecycle state machine, pick-pack-ship, carrier integration, multi-warehouse routing | When building inventory and fulfillment flows |
+| [30-SUBSCRIPTION-BILLING-ADVANCED](30-SUBSCRIPTION-BILLING-ADVANCED.md) | Usage-based/metered billing, seat pricing, proration, dunning, invoice generation, MRR/ARR analytics | When implementing advanced subscription billing |
+| [31-MARKETPLACE-PLATFORM-PAYMENTS](31-MARKETPLACE-PLATFORM-PAYMENTS.md) | Seller onboarding/KYC, split payments, escrow, platform fees, dispute arbitration, money transmission compliance | When building marketplace payment flows |
+| [32-RETURNS-REFUNDS-RMA](32-RETURNS-REFUNDS-RMA.md) | RMA state machine, return eligibility, inspection/disposition, exchange flows, warranty claims, return fraud | When handling returns and refunds |
+| [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | ASC 606/IFRS 15, subscription revenue schedules, deferred revenue, reconciliation, GL integration, audit trail | When implementing revenue recognition |
+| [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | Coupon management, rules engine, dynamic pricing, flash sales, loyalty/points programs, promotion fraud | When building discount and promotion systems |
+| [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | GDPR/CCPA, consent management, right-to-erasure, DSAR, data retention, privacy-by-design in .NET | When implementing data privacy and compliance |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -327,6 +334,13 @@ The following topics were identified during the initial documentation effort but
 | Regional Payment Methods & Regulations | ✅ Complete | [26-REGIONAL-PAYMENT-METHODS](26-REGIONAL-PAYMENT-METHODS.md) |
 | Payment Provider Deep Dive | ✅ Complete | [27-PAYMENT-PROVIDER-DEEP-DIVE](27-PAYMENT-PROVIDER-DEEP-DIVE.md) |
 | Address Verification & Fraud Prevention | ✅ Complete | [28-ADDRESS-VERIFICATION-FRAUD-PREVENTION](28-ADDRESS-VERIFICATION-FRAUD-PREVENTION.md) |
+| Inventory & Order Fulfillment | ✅ Complete | [29-INVENTORY-ORDER-FULFILLMENT](29-INVENTORY-ORDER-FULFILLMENT.md) |
+| Advanced Subscription Billing | ✅ Complete | [30-SUBSCRIPTION-BILLING-ADVANCED](30-SUBSCRIPTION-BILLING-ADVANCED.md) |
+| Marketplace & Platform Payments | ✅ Complete | [31-MARKETPLACE-PLATFORM-PAYMENTS](31-MARKETPLACE-PLATFORM-PAYMENTS.md) |
+| Returns, Refunds & RMA | ✅ Complete | [32-RETURNS-REFUNDS-RMA](32-RETURNS-REFUNDS-RMA.md) |
+| Revenue Recognition & Reporting | ✅ Complete | [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) |
+| Discount & Promotion Engine | ✅ Complete | [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) |
+| Data Privacy & Compliance | ✅ Complete | [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) |
 
 > All planned topics have been promoted to dedicated documents.
 
