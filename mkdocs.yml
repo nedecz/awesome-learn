@@ -23,7 +23,6 @@ theme:
   features:
     - content.code.copy
     - navigation.top
-    - navigation.tabs
 nav:
   - Home: index.md
   - CI/CD:
