@@ -1,9 +1,6 @@
 name: Deploy GitHub Pages
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -19,6 +16,7 @@ jobs:
   build:
     name: Build MkDocs site
     runs-on: ubuntu-latest
+    if: github.actor == 'nedecz'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
