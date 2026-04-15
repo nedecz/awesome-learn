@@ -1189,6 +1189,7 @@ Evaluation Criteria:
 | 09 | [BEST-PRACTICES](09-BEST-PRACTICES.md) | 6 | Production patterns, backup, monitoring, naming conventions |
 | 10 | [ANTI-PATTERNS](10-ANTI-PATTERNS.md) | 6 | God tables, N+1 queries, EAV, OFFSET pagination |
 | 11 | [SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | 3 | Multi-tenancy, event sourcing, bucket, single-table design, CQRS |
+| 12 | [SCHEMA-DESIGN-PRINCIPLES](12-SCHEMA-DESIGN-PRINCIPLES.md) | 2, 6 | Naming, keys, types, constraints, normalization, index alignment, evolution |
 | — | [LEARNING-PATH](LEARNING-PATH.md) | All | This document — structured 6-phase curriculum |
 
 ---

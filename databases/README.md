@@ -18,6 +18,7 @@ A comprehensive guide to database fundamentals, data modeling, storage engines, 
 | [09-BEST-PRACTICES](09-BEST-PRACTICES.md) | Production patterns, backup strategies, monitoring | **Essential — production checklist** |
 | [10-ANTI-PATTERNS](10-ANTI-PATTERNS.md) | Common database mistakes and how to avoid them | **Essential — what NOT to do** |
 | [11-SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | Reusable schema patterns for SQL and NoSQL databases | When applying proven patterns to production schemas |
+| [12-SCHEMA-DESIGN-PRINCIPLES](12-SCHEMA-DESIGN-PRINCIPLES.md) | Foundational principles for naming, keys, types, constraints, and evolution | When making any schema design decision |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured 10–12 week training guide with exercises | **Start here** after the Overview |
 | [README](README.md) | This index file | Start here for navigation |
 
@@ -162,6 +163,7 @@ Serializable     → Full isolation, as if transactions execute sequentially
 - **Best Practices** — Backup, monitoring, capacity planning, security
 - **Anti-Patterns** — 12 common database mistakes with examples and fixes
 - **Schema Design Patterns** — Multi-tenancy, event sourcing, bucket, single-table design, CQRS, and more
+- **Schema Design Principles** — Naming conventions, primary key design, data types, constraints, normalization, index alignment, temporal data, schema evolution
 
 ## 🤝 Contributing
 

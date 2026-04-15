@@ -1,5 +1,5 @@
 site_name: Awesome Learn
-site_description: Learning resources for CI/CD, cloud computing, commerce systems, databases, Docker, frontend development, Angular, Git, Infrastructure as Code, Kubernetes, microservices, networking, observability, security, system design, terminal tools, and .NET/C#
+site_description: Learning resources for caching, CI/CD, cloud computing, commerce systems, databases, Docker, frontend development, Angular, Git, Infrastructure as Code, Kubernetes, microservices, networking, observability, security, system design, terminal tools, and .NET/C#
 repo_url: https://github.com/nedecz/awesome-learn
 docs_dir: docs
 site_dir: site
@@ -39,6 +39,18 @@ nav:
     - Best Practices: ci-cd/09-BEST-PRACTICES.md
     - Anti-Patterns: ci-cd/10-ANTI-PATTERNS.md
     - Learning Path: ci-cd/LEARNING-PATH.md
+  - Caching:
+    - Overview: caching/README.md
+    - Fundamentals: caching/00-OVERVIEW.md
+    - Redis: caching/01-REDIS.md
+    - Valkey: caching/02-VALKEY.md
+    - Memcached: caching/03-MEMCACHED.md
+    - Cache Strategies: caching/04-CACHE-STRATEGIES.md
+    - Cache Invalidation: caching/05-CACHE-INVALIDATION.md
+    - Distributed Caching: caching/06-DISTRIBUTED-CACHING.md
+    - CDN & Edge Caching: caching/07-CDN-AND-EDGE-CACHING.md
+    - Best Practices: caching/08-BEST-PRACTICES.md
+    - Learning Path: caching/LEARNING-PATH.md
   - Cloud Computing:
     - Overview: cloud-computing/README.md
     - Fundamentals: cloud-computing/00-OVERVIEW.md

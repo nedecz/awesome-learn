@@ -18,6 +18,20 @@
 - [Anti-Patterns](ci-cd/10-ANTI-PATTERNS.md)
 - [Learning Path](ci-cd/LEARNING-PATH.md)
 
+# Caching
+
+- [Overview](caching/README.md)
+- [Caching Fundamentals](caching/00-OVERVIEW.md)
+- [Redis](caching/01-REDIS.md)
+- [Valkey](caching/02-VALKEY.md)
+- [Memcached](caching/03-MEMCACHED.md)
+- [Cache Strategies](caching/04-CACHE-STRATEGIES.md)
+- [Cache Invalidation](caching/05-CACHE-INVALIDATION.md)
+- [Distributed Caching](caching/06-DISTRIBUTED-CACHING.md)
+- [CDN & Edge Caching](caching/07-CDN-AND-EDGE-CACHING.md)
+- [Best Practices](caching/08-BEST-PRACTICES.md)
+- [Learning Path](caching/LEARNING-PATH.md)
+
 # Cloud Computing
 
 - [Overview](cloud-computing/README.md)
@@ -89,6 +103,7 @@
 - [Best Practices](databases/09-BEST-PRACTICES.md)
 - [Anti-Patterns](databases/10-ANTI-PATTERNS.md)
 - [Schema Design Patterns](databases/11-SCHEMA-DESIGN-PATTERNS.md)
+- [Schema Design Principles](databases/12-SCHEMA-DESIGN-PRINCIPLES.md)
 - [Learning Path](databases/LEARNING-PATH.md)
 
 # Docker
