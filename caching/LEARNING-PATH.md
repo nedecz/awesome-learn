@@ -135,12 +135,16 @@ A structured, self-paced training guide to mastering caching — from fundamenta
 - Set up monitoring, alerting, and observability for cache infrastructure
 - Test cache behavior under failure conditions and load
 - Complete a production readiness checklist for caching deployments
+- Design cache schemas that differ from database schemas for optimal read performance
+- Choose appropriate Redis data structures for different access patterns
+- Apply schema versioning strategies for cached data during deployments
 
 ### Reading
 
 | Order | Document | Focus Areas |
 |-------|----------|-------------|
 | 1 | [08-BEST-PRACTICES](08-BEST-PRACTICES.md) | Key design, TTL, memory, resilience, security, monitoring, testing, checklist |
+| 2 | [09-SCHEMA-DESIGN](09-SCHEMA-DESIGN.md) | Cache data modeling, Redis data structures, denormalization, granularity, versioning |
 
 ### Knowledge Check
 
@@ -149,6 +153,9 @@ A structured, self-paced training guide to mastering caching — from fundamenta
 - [ ] What should happen when the cache is down? Describe graceful degradation.
 - [ ] What are the top 5 metrics to monitor for a caching layer?
 - [ ] What are the most common caching mistakes and how do you avoid them?
+- [ ] Why should your cache schema differ from your database schema?
+- [ ] When would you use a Redis Hash vs a serialized String for a cached entity?
+- [ ] What is the difference between fine-grained and coarse-grained caching?
 
 ---
 
@@ -165,6 +172,7 @@ A structured, self-paced training guide to mastering caching — from fundamenta
 | 06 | [DISTRIBUTED-CACHING](06-DISTRIBUTED-CACHING.md) | 4 | Consistent hashing, partitioning, replication, multi-tier |
 | 07 | [CDN-AND-EDGE-CACHING](07-CDN-AND-EDGE-CACHING.md) | 4 | CDN, HTTP headers, edge computing, reverse proxy |
 | 08 | [BEST-PRACTICES](08-BEST-PRACTICES.md) | 5 | Key design, TTL, memory, resilience, security, monitoring |
+| 09 | [SCHEMA-DESIGN](09-SCHEMA-DESIGN.md) | 5 | Cache data modeling, Redis structures, denormalization, granularity, versioning |
 | — | [LEARNING-PATH](LEARNING-PATH.md) | All | This document — structured 5-phase curriculum |
 
 ---

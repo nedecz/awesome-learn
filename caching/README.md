@@ -15,6 +15,7 @@ A comprehensive guide to caching fundamentals, technologies (Redis, Valkey, Memc
 | [06-DISTRIBUTED-CACHING](06-DISTRIBUTED-CACHING.md) | Distributed cache topologies, consistent hashing, replication, partitioning | When scaling caching across nodes |
 | [07-CDN-AND-EDGE-CACHING](07-CDN-AND-EDGE-CACHING.md) | CDN caching, edge computing, reverse proxy, HTTP cache headers | When caching at the edge or CDN layer |
 | [08-BEST-PRACTICES](08-BEST-PRACTICES.md) | Key design, TTL strategy, memory management, monitoring, security, resilience | **Essential — production checklist** |
+| [09-SCHEMA-DESIGN](09-SCHEMA-DESIGN.md) | Cache data modeling, Redis data structures, denormalization, granularity, versioning | When designing what data to cache and how to structure it |
 | [README](README.md) | This index file | Start here for navigation |
 
 ## 🚀 Quick Start
@@ -115,6 +116,7 @@ CDN        → Edge caching for static/dynamic content, global distribution
 - **Distributed Caching** — Consistent hashing, partitioning, replication, multi-tier
 - **CDN & Edge** — CDN providers, HTTP caching headers, edge computing, reverse proxy
 - **Best Practices** — Key design, TTL, memory, resilience, security, monitoring, testing
+- **Schema Design** — Cache data modeling, Redis data structures, denormalization, granularity, versioning, multi-model patterns
 
 ## 🤝 Contributing
 

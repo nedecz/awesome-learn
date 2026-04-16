@@ -30,6 +30,7 @@
 - [Distributed Caching](caching/06-DISTRIBUTED-CACHING.md)
 - [CDN & Edge Caching](caching/07-CDN-AND-EDGE-CACHING.md)
 - [Best Practices](caching/08-BEST-PRACTICES.md)
+- [Schema Design](caching/09-SCHEMA-DESIGN.md)
 - [Learning Path](caching/LEARNING-PATH.md)
 
 # Cloud Computing
