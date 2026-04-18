@@ -1,0 +1,65 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer authorizes\nbank transfer] --> B{Transfer type}
+
+    B -->|ACH - United States| C[ACH Flow]
+    B -->|SEPA - Europe| D[SEPA Flow]
+
+    subgraph ACH [🇺🇸 ACH Transfer Flow]
+        direction TD
+        C1[Customer provides\nrouting + account number] --> C2{Payment direction}
+        C2 -->|Pull / Debit\nMerchant-initiated| C3[Merchant submits\nACH debit via ODFI]
+        C2 -->|Push / Credit\nCustomer-initiated| C4[Customer instructs\ntheir bank to pay]
+        
+        C3 --> C5[ODFI submits to\nACH Network / Federal Reserve]
+        C4 --> C5
+        C5 --> C6[ACH Network batches\ntransactions daily]
+        C6 --> C7[RDFI receives\ndebit instruction]
+        C7 --> C8[RDFI debits\ncustomer account]
+        C8 --> C9{Settlement timing}
+        C9 -->|Same-day ACH| C10[Settlement: Same day\nhigher fee]
+        C9 -->|Standard ACH| C11[Settlement: T+1 to T+2\nbusiness days]
+    end
+
+    subgraph SEPA [🇪🇺 SEPA Transfer Flow]
+        direction TD
+        D1[Customer signs\nSEPA Direct Debit mandate] --> D2{SEPA scheme}
+        D2 -->|SEPA Credit Transfer\nPush payment| D3[Customer instructs\nbank to pay merchant]
+        D2 -->|SEPA Direct Debit\nPull payment| D4[Merchant submits\ncollection via creditor bank]
+        
+        D3 --> D5[Sent through SEPA\nClearing System]
+        D4 --> D6[Pre-notification sent\nto customer 14 days prior]
+        D6 --> D5
+        D5 --> D7[Debtor bank processes\ninstruction]
+        D7 --> D8[Funds transferred\nto creditor bank]
+        D8 --> D9[Settlement: T+1\nbusiness day]
+    end
+
+    C10 --> E[Merchant receives funds]
+    C11 --> E
+    D9 --> E
+
+    E --> F[💰 Payment confirmed]
+
+    F --> G{Return / Reversal window}
+    G -->|ACH Return| H[⚠️ Returns possible\nup to 2 business days\nfor most codes]
+    G -->|ACH Unauthorized| I[⚠️ Returns possible\nup to 60 calendar days]
+    G -->|SEPA Core DD| J[⚠️ Refund right:\n8 weeks no questions\n13 months if unauthorized]
+    G -->|SEPA B2B DD| K[No refund right\nfor authorized debits]
+
+    H --> L{Return reason}
+    I --> L
+    L --> L1[Insufficient funds R01]
+    L --> L2[Account closed R02]
+    L --> L3[Unauthorized debit R10]
+    L --> L4[Account frozen R16]
+
+    L1 & L2 & L3 & L4 --> M[❌ Funds reversed\nfrom merchant]
+    M --> N[Merchant must handle\nfailed payment]
+
+    style A fill:#4A90D9,color:#fff
+    style F fill:#7ED321,color:#fff
+    style M fill:#D0021B,color:#fff
+    style H fill:#F5A623,color:#fff
+    style I fill:#F5A623,color:#fff
+    style J fill:#F5A623,color:#fff

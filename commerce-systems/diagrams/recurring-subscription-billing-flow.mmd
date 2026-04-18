@@ -1,0 +1,78 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer subscribes\nto plan] --> B[Initial payment\nauthorized & captured]
+    B --> C[Payment method tokenized\n🔒 stored securely in vault]
+    C --> D[Subscription created\nStatus: Active]
+    D --> E[Next billing date set\nbased on cycle - monthly/annual]
+
+    E --> F[⏰ Billing cycle triggers\non scheduled date]
+    F --> G[Retrieve stored payment\ntoken from vault]
+    G --> H[Create charge using\nstored token]
+
+    H --> I{Charge result}
+    I -->|✅ Success| J[Payment confirmed]
+    J --> K[Invoice generated\nReceipt emailed]
+    K --> L[Subscription renewed\nNext cycle date set]
+    L --> F
+
+    I -->|❌ Failure| M[Classify decline reason]
+    M --> N{Decline type}
+    N -->|Soft decline\nInsufficient funds| O[Schedule smart retry]
+    N -->|Hard decline\nCard expired / cancelled| P[Send card update email]
+    N -->|Fraud / Do not honor| Q[Flag for review]
+
+    O --> R{Retry schedule}
+    R -->|Day 0| S[First attempt failed]
+    S -->|Day 3| T[Retry attempt 2]
+    T -->|Day 5| U[Retry attempt 3]
+    U -->|Day 7| V[Final retry attempt 4]
+
+    P --> W[Customer updates\npayment method?]
+    W -->|Yes| X[Retry with new\npayment method]
+    X --> I
+    W -->|No after 7 days| V
+
+    T --> TA{Success?}
+    TA -->|Yes| J
+    TA -->|No| U
+
+    U --> UA{Success?}
+    UA -->|Yes| J
+    UA -->|No| V
+
+    V --> VA{Final attempt success?}
+    VA -->|Yes| J
+    VA -->|No| Y[All retries exhausted]
+
+    subgraph DUNNING [📧 Dunning Email Sequence]
+        direction TD
+        D1[Day 0: Payment failed\nPlease update card] --> D2[Day 3: Second notice\nService may be interrupted]
+        D2 --> D3[Day 5: Urgent notice\nAccess will be suspended]
+        D3 --> D4[Day 7: Final notice\nSubscription will be cancelled]
+    end
+
+    S --> D1
+    T --> D2
+    U --> D3
+    V --> D4
+
+    Y --> Z[Enter grace period\n⚠️ Access may be restricted]
+    Z --> AA{Customer action\nduring grace period?}
+    AA -->|Updates payment| X
+    AA -->|No action| AB[Grace period expires]
+    AB --> AC[❌ Subscription cancelled\nInvoluntary churn]
+
+    subgraph PRORATION [Proration on Plan Changes]
+        direction TD
+        PR1[Customer upgrades\nmid-cycle] --> PR2[Calculate unused time\non current plan]
+        PR2 --> PR3[Credit unused portion]
+        PR3 --> PR4[Charge prorated amount\nfor new plan]
+        PR4 --> PR5[Reset billing cycle\nor keep anchor date]
+    end
+
+    style A fill:#4A90D9,color:#fff
+    style J fill:#7ED321,color:#fff
+    style AC fill:#D0021B,color:#fff
+    style Z fill:#F5A623,color:#fff
+    style S fill:#D0021B,color:#fff
+    style D fill:#7ED321,color:#fff

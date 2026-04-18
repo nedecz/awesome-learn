@@ -1,0 +1,71 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🛒 Customer enters\ncard number PAN] --> B{Input method}
+
+    B -->|Hosted Fields / iframe| C[PCI-compliant form\nrendered by payment provider]
+    B -->|Payment Element| D[Pre-built UI component\nfrom provider SDK]
+    B -->|Mobile SDK| E[Native secure input\non device]
+
+    C --> F[Card data sent DIRECTLY\nto payment provider vault\n🔒 Never touches merchant server]
+    D --> F
+    E --> F
+
+    F --> G[Vault encrypts PAN\nwith AES-256 + HSM]
+    G --> H[Vault stores encrypted PAN\nmapped to opaque token]
+    H --> I[Token returned to\nmerchant frontend]
+    I --> J[Merchant stores token\nin their database\n🔒 Not PCI-sensitive data]
+
+    subgraph SCOPE [🔒 PCI Scope Reduction]
+        direction TD
+        SC1[Without tokenization:\nMerchant handles PAN\nFull PCI DSS compliance\n~300+ requirements] --> SC2[With tokenization:\nMerchant only handles tokens\nPCI SAQ-A or SAQ-A-EP\n~20-30 requirements]
+    end
+
+    J --> K{Future transaction\nusing stored card}
+    K -->|Recurring charge| L[Merchant sends token\n+ amount to provider]
+    K -->|One-click checkout| L
+    K -->|Subscription renewal| L
+
+    L --> M[Provider vault receives\ntoken]
+    M --> N[Vault looks up\nencrypted PAN via token]
+    N --> O[Vault decrypts PAN\nusing HSM]
+    O --> P[PAN sent to processor\nfor authorization]
+    P --> Q{Authorization result}
+    Q -->|Approved ✅| R[Success returned\nto merchant via token reference]
+    Q -->|Declined ❌| S[Failure returned\nwith decline code]
+
+    subgraph GATEWAY_TOKEN [Gateway Tokenization]
+        direction TD
+        GT1[Token created by\npayment gateway\ne.g. Stripe tok_xxx] --> GT2[Valid only with\nthat specific gateway]
+        GT2 --> GT3[Merchant locked to\nsingle provider]
+        GT3 --> GT4[Simple to implement\nMost common approach]
+    end
+
+    subgraph NETWORK_TOKEN [Network Tokenization - DPAN]
+        direction TD
+        NT1[Token issued by\ncard network\nVisa/MC Token Service] --> NT2[DPAN replaces FPAN\nacross all providers]
+        NT2 --> NT3[Provider-agnostic\nPortable between gateways]
+        NT3 --> NT4[Higher approval rates\n+2-5% improvement]
+        NT4 --> NT5[Auto-updates on\ncard reissue/expiry]
+    end
+
+    subgraph LIFECYCLE [Token Lifecycle Management]
+        direction TD
+        LC1[Token created\non first use] --> LC2[Token updated\nautomatically when\ncard is reissued]
+        LC2 --> LC3[Token suspended\nif card reported\nstolen/lost]
+        LC3 --> LC4[Token deleted\non customer request\nor card cancellation]
+    end
+
+    R --> T[✅ Transaction complete\nMerchant never saw\nreal card number]
+
+    S --> U[Merchant handles decline\nmay request card update]
+    U --> V{Account updater service}
+    V -->|Card reissued| W[Vault automatically\ngets new card details]
+    V -->|Card cancelled| X[⚠️ Token invalidated\nCustomer must re-enter]
+
+    style A fill:#4A90D9,color:#fff
+    style F fill:#4A90D9,color:#fff
+    style J fill:#7ED321,color:#fff
+    style R fill:#7ED321,color:#fff
+    style T fill:#7ED321,color:#fff
+    style S fill:#D0021B,color:#fff
+    style X fill:#F5A623,color:#fff

@@ -87,6 +87,7 @@
 - [Revenue Recognition & Reporting](commerce-systems/33-REVENUE-RECOGNITION-REPORTING.md)
 - [Discount & Promotion Engine](commerce-systems/34-DISCOUNT-PROMOTION-ENGINE.md)
 - [Data Privacy & Compliance](commerce-systems/35-DATA-PRIVACY-COMPLIANCE.md)
+- [Payment Flow Diagrams](commerce-systems/36-PAYMENT-FLOW-DIAGRAMS.md)
 - [Learning Path](commerce-systems/LEARNING-PATH.md)
 
 # Databases

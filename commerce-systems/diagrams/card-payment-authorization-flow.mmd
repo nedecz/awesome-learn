@@ -1,0 +1,62 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🛒 Customer enters card details] --> B[Client-side tokenization\nHosted fields / iframe]
+    B --> C[Token sent to merchant server\n🔒 PAN never touches merchant]
+    C --> D[Merchant server sends\ntoken + amount to Payment Gateway]
+
+    D --> E[Payment Gateway validates\nrequest & routes]
+    E --> F[Gateway forwards to\nPayment Processor]
+    F --> G{Card Network routing}
+    G -->|Visa| H[Visa Network]
+    G -->|Mastercard| I[Mastercard Network]
+    G -->|Amex| J[Amex Network]
+    H --> K[Route to Issuing Bank]
+    I --> K
+    J --> K
+
+    K --> L{Issuing Bank checks}
+    L --> M[Check available balance]
+    L --> N[Fraud detection rules]
+    L --> O[Velocity & spending limits]
+    L --> P[Card status - active/blocked]
+
+    M & N & O & P --> Q{Issuer decision}
+    Q -->|Approved| R[✅ Authorization code generated]
+    Q -->|Declined - Insufficient funds| S[❌ Soft decline]
+    Q -->|Declined - Fraud suspected| T[❌ Hard decline]
+    Q -->|Declined - Card expired| U[❌ Hard decline]
+
+    R --> V[Auth code sent back\nthrough card network]
+    V --> W[Processor receives approval]
+    W --> X[Gateway returns auth\nto merchant]
+    X --> Y[Authorization hold placed\non customer card]
+
+    Y --> Z{Capture timing}
+    Z -->|Immediate capture| AA[Transaction added to\nsettlement batch]
+    Z -->|Delayed capture| AB[Merchant captures\nwithin 7 days]
+    AB --> AA
+
+    AA --> AC[End of day: Batch submitted\nto Acquiring Bank]
+    AC --> AD[Acquirer submits to\ncard network for settlement]
+    AD --> AE[Card network settles\nwith Issuing Bank]
+    AE --> AF[Interchange fee deducted]
+    AF --> AG[Net amount sent\nto Acquiring Bank]
+    AG --> AH[Acquirer deposits to merchant\nminus processing fees]
+    AH --> AI[💰 Merchant receives payout\nT+1 to T+3 business days]
+
+    S --> AJ[Return decline code\nto merchant]
+    T --> AJ
+    U --> AJ
+    AJ --> AK[Merchant displays error\nto customer]
+    AK --> AL{Customer action}
+    AL -->|Try another card| A
+    AL -->|Abandon| AM[❌ Payment abandoned]
+
+    style A fill:#4A90D9,color:#fff
+    style R fill:#7ED321,color:#fff
+    style AI fill:#7ED321,color:#fff
+    style S fill:#F5A623,color:#fff
+    style T fill:#D0021B,color:#fff
+    style U fill:#D0021B,color:#fff
+    style AM fill:#D0021B,color:#fff
+    style Y fill:#4A90D9,color:#fff
