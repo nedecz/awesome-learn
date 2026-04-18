@@ -42,6 +42,7 @@ A comprehensive guide to implementing and maintaining payment systems in .NET ap
 | [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | ASC 606/IFRS 15, subscription revenue schedules, deferred revenue, reconciliation, GL integration, audit trail | When implementing revenue recognition |
 | [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | Coupon management, rules engine, dynamic pricing, flash sales, loyalty/points programs, promotion fraud | When building discount and promotion systems |
 | [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | GDPR/CCPA, consent management, right-to-erasure, DSAR, data retention, privacy-by-design in .NET | When implementing data privacy and compliance |
+| [36-PAYMENT-FLOW-DIAGRAMS](36-PAYMENT-FLOW-DIAGRAMS.md) | Visual payment flow guide — Mermaid SVG diagrams + ASCII flows for card auth, 3DS, wallets, ACH/SEPA, BNPL, refunds, subscriptions, state machine, settlement, tokenization | When you want to understand payment flows visually |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured training guide through all docs | **Start here** after the Overview |
 
 ## 🚀 Quick Start
@@ -341,6 +342,7 @@ The following topics were identified during the initial documentation effort but
 | Revenue Recognition & Reporting | ✅ Complete | [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) |
 | Discount & Promotion Engine | ✅ Complete | [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) |
 | Data Privacy & Compliance | ✅ Complete | [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) |
+| Payment Flow Diagrams (Visual Guide) | ✅ Complete | [36-PAYMENT-FLOW-DIAGRAMS](36-PAYMENT-FLOW-DIAGRAMS.md) |
 
 > All planned topics have been promoted to dedicated documents.
 

@@ -391,6 +391,7 @@ These documents cover niche topics. Read them as your project requires:
 | [33-REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | When implementing ASC 606 compliance, deferred revenue, or financial reporting |
 | [34-DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | When building coupon systems, promotion rules, dynamic pricing, or loyalty programs |
 | [35-DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | When implementing GDPR/CCPA compliance, consent management, or data subject requests |
+| [36-PAYMENT-FLOW-DIAGRAMS](36-PAYMENT-FLOW-DIAGRAMS.md) | When you want to understand payment flows visually — Mermaid SVG diagrams and ASCII flows |
 
 ---
 
@@ -476,3 +477,4 @@ Build a complete **multi-provider payment API** that demonstrates everything you
 | 33 | [REVENUE-RECOGNITION-REPORTING](33-REVENUE-RECOGNITION-REPORTING.md) | 7 |
 | 34 | [DISCOUNT-PROMOTION-ENGINE](34-DISCOUNT-PROMOTION-ENGINE.md) | 7 |
 | 35 | [DATA-PRIVACY-COMPLIANCE](35-DATA-PRIVACY-COMPLIANCE.md) | 7 |
+| 36 | [PAYMENT-FLOW-DIAGRAMS](36-PAYMENT-FLOW-DIAGRAMS.md) | 1, 7 |
