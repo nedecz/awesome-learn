@@ -1,0 +1,79 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+stateDiagram-v2
+    [*] --> Created: Payment intent created
+
+    Created --> Pending: Customer submits payment
+    Created --> Expired: ⏰ Session timeout\n(15-30 min)
+    Created --> Cancelled: Customer abandons
+
+    Pending --> RequiresAction: 3DS / redirect needed
+    Pending --> Authorized: Direct authorization\nsucceeded ✅
+    Pending --> Failed: Authorization\ndeclined ❌
+
+    RequiresAction --> Authorized: Customer completes\nauthentication ✅
+    RequiresAction --> Failed: Authentication\nfailed ❌
+    RequiresAction --> Expired: ⏰ Challenge timeout
+
+    Authorized --> Captured: Merchant captures\n(immediate or delayed)
+    Authorized --> PartiallyCaptured: Merchant captures\nless than auth amount
+    Authorized --> Voided: Merchant voids\nbefore capture
+    Authorized --> Expired: ⏰ Auth expires\n(7-30 days)
+
+    PartiallyCaptured --> Settled: Settlement\ncompletes
+    PartiallyCaptured --> PartiallyRefunded: Partial refund\ninitiated
+
+    Captured --> Settled: Batch settlement\nT+1 to T+3
+
+    Settled --> Refunded: Full refund\nprocessed 💰
+    Settled --> PartiallyRefunded: Partial refund\nprocessed
+    Settled --> Disputed: Customer files\nchargeback ⚠️
+
+    PartiallyRefunded --> Refunded: Remaining amount\nrefunded
+    PartiallyRefunded --> Disputed: Customer disputes\nremaining
+
+    Disputed --> DisputeWon: Merchant wins\ndispute ✅
+    Disputed --> DisputeLost: Merchant loses\ndispute ❌
+    Disputed --> Refunded: Merchant accepts\n& refunds
+
+    DisputeWon --> Settled: Funds returned\nto merchant
+    DisputeLost --> Refunded: Funds returned\nto customer
+
+    Failed --> [*]: Terminal state
+    Expired --> [*]: Terminal state
+    Cancelled --> [*]: Terminal state
+    Voided --> [*]: Terminal state
+    Refunded --> [*]: Terminal state
+
+    note right of Created
+        Initial state when payment
+        intent is created via API
+    end note
+
+    note right of Authorized
+        Funds reserved on card
+        Not yet transferred
+        Can be voided at no cost
+    end note
+
+    note right of Captured
+        Funds will be transferred
+        in next settlement batch
+    end note
+
+    note right of Settled
+        Funds transferred to
+        merchant account
+        Refund window opens
+    end note
+
+    note right of Disputed
+        Funds provisionally reversed
+        Merchant must respond
+        within 7-21 days
+    end note
+
+    note right of Voided
+        Auth cancelled before capture
+        No funds moved
+        No fees charged
+    end note

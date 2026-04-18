@@ -1,0 +1,67 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🛒 Customer taps\nApple Pay / Google Pay button] --> B{Device biometric auth}
+    B -->|Face ID / Touch ID\nFingerprint / PIN| C[✅ Device confirms identity]
+    B -->|Auth failed| D[❌ Payment cancelled]
+
+    C --> E[Secure Element generates\nencrypted payment token]
+
+    E --> F[Token contains:]
+    F --> F1[DPAN - Device PAN\nnot real card number]
+    F --> F2[Dynamic cryptogram\none-time use]
+    F --> F3[Transaction-specific data]
+
+    F1 & F2 & F3 --> G[Encrypted payload sent\nto merchant]
+
+    G --> H[Merchant server receives\nencrypted token]
+    H --> I[Merchant sends token\nto Payment Gateway]
+
+    I --> J[Gateway decrypts token\nusing shared keys with\nToken Service Provider]
+
+    J --> K{Token type}
+    K -->|Apple Pay| L[Apple Token Service\nProvider decrypts]
+    K -->|Google Pay| M[Google Token Service\nProvider decrypts]
+
+    L --> N[Maps DPAN → FPAN\nvia card network]
+    M --> N
+
+    N --> O[Process as network token\ntransaction with cryptogram]
+    O --> P[Route to card network\nVisa / Mastercard]
+    P --> Q[Card network validates\ncryptogram & DPAN mapping]
+    Q --> R[Forward to Issuing Bank\nwith real FPAN]
+
+    R --> S{Issuer decision}
+    S -->|Approved| T[✅ Authorization approved]
+    S -->|Declined| U[❌ Transaction declined]
+
+    T --> V[Auth response flows back\nthrough chain]
+    V --> W[Merchant receives\napproval + auth code]
+    W --> X[Customer sees ✅\non device]
+
+    X --> Y[Settlement follows\nnormal card flow]
+    Y --> Z[💰 Merchant receives payout]
+
+    U --> AA[Decline notification\nto customer device]
+
+    subgraph SEC [🔒 Security Benefits]
+        direction LR
+        S1[Real card number FPAN\nnever leaves secure element]
+        S2[DPAN is device-specific\nuseless if intercepted]
+        S3[Cryptogram is single-use\ncannot be replayed]
+        S4[Biometric required\nfor every transaction]
+    end
+
+    subgraph TSP [Token Service Provider Role]
+        direction LR
+        T1[Maintains DPAN ↔ FPAN mapping]
+        T2[Issues device-specific tokens]
+        T3[Manages token lifecycle\nexpiry / revocation]
+    end
+
+    style A fill:#4A90D9,color:#fff
+    style C fill:#7ED321,color:#fff
+    style D fill:#D0021B,color:#fff
+    style T fill:#7ED321,color:#fff
+    style U fill:#D0021B,color:#fff
+    style Z fill:#7ED321,color:#fff
+    style E fill:#4A90D9,color:#fff

@@ -1,0 +1,67 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[🛒 Customer at checkout\nselects Buy Now Pay Later] --> B{BNPL Provider}
+    B -->|Klarna| C[Redirect to Klarna]
+    B -->|Afterpay| C
+    B -->|Affirm| C
+    B -->|Clearpay| C
+
+    C[Redirect to BNPL provider] --> D[Customer authenticates\nwith BNPL account]
+    D --> E[Provider performs\nsoft credit check]
+
+    E --> F{Approval decision}
+    F -->|Approved ✅| G[Customer sees\ninstallment plan]
+    F -->|Declined ❌| H[Customer returned\nto merchant checkout]
+    H --> I[Customer selects\nalternative payment method]
+
+    G --> J{Plan options}
+    J -->|Pay in 4| K[4 installments\nevery 2 weeks\n0% interest]
+    J -->|Pay in 30| L[Full amount\ndue in 30 days]
+    J -->|Monthly installments| M[6-36 months\nmay include interest]
+
+    K --> N[Customer reviews\n& accepts terms]
+    L --> N
+    M --> N
+
+    N --> O{Customer confirms?}
+    O -->|Yes| P[✅ Customer accepts plan]
+    O -->|No| Q[Customer cancels\nreturns to merchant]
+
+    P --> R[BNPL provider sends\napproval to merchant]
+    R --> S[Merchant creates order]
+    S --> T[BNPL provider pays\nmerchant in FULL\nminus provider fee 3-7%]
+    T --> U[💰 Merchant receives\nfull payment upfront]
+
+    U --> V[Order fulfilled normally\nMerchant has no further risk]
+
+    subgraph CUSTOMER_PAYS [Customer Repayment to BNPL Provider]
+        direction TD
+        W[Installment 1 due\nDay 0 - at purchase] --> X[Installment 2 due\nDay 14]
+        X --> Y[Installment 3 due\nDay 28]
+        Y --> Z[Installment 4 due\nDay 42]
+    end
+
+    P --> W
+
+    Z --> AA{All payments made?}
+    AA -->|Yes| AB[✅ Customer obligation complete]
+    AA -->|No - missed payment| AC[⚠️ Late fee charged\nby BNPL provider]
+    AC --> AD[BNPL provider attempts\ncollection]
+    AD --> AE{Recovery}
+    AE -->|Recovered| AB
+    AE -->|Default| AF[❌ Sent to collections\nMay affect credit score]
+
+    subgraph RISK [3-Party Risk Distribution]
+        direction LR
+        R1[Merchant: No risk\nPaid upfront by provider]
+        R2[BNPL Provider: Bears\ncredit & fraud risk]
+        R3[Customer: Must repay\nprovider on schedule]
+    end
+
+    style A fill:#4A90D9,color:#fff
+    style H fill:#D0021B,color:#fff
+    style U fill:#7ED321,color:#fff
+    style AB fill:#7ED321,color:#fff
+    style AF fill:#D0021B,color:#fff
+    style AC fill:#F5A623,color:#fff
+    style T fill:#7ED321,color:#fff

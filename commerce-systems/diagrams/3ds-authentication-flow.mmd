@@ -1,0 +1,68 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+sequenceDiagram
+    participant CB as Customer Browser
+    participant MS as Merchant Server
+    participant PG as Payment Gateway
+    participant TDS as 3DS Server
+    participant DS as Directory Server<br/>(Visa/MC)
+    participant ACS as ACS<br/>(Issuing Bank)
+
+    Note over CB,ACS: 🔒 3D Secure 2.0 Authentication Flow
+
+    CB->>MS: Submit payment (card details tokenized)
+    MS->>PG: Create payment intent
+    PG->>TDS: Initiate 3DS authentication
+
+    Note over TDS,DS: Version Negotiation
+    TDS->>DS: AReq (Authentication Request)<br/>with device fingerprint data
+    DS->>ACS: Forward AReq to issuer ACS
+    
+    Note over ACS: Risk-Based Analysis:<br/>• Device fingerprint<br/>• Transaction history<br/>• Amount & merchant risk<br/>• Cardholder behavior
+
+    alt Frictionless Flow (Low Risk)
+        ACS->>DS: ARes - Frictionless authenticated ✅
+        DS->>TDS: Forward ARes
+        TDS->>PG: Authentication successful<br/>ECI = 05 (Visa) / 02 (MC)
+        PG->>MS: 3DS complete - proceed to authorize
+        MS->>CB: ✅ Payment processing (no challenge shown)
+    else Challenge Flow (Higher Risk)
+        ACS->>DS: ARes - Challenge required ⚠️
+        DS->>TDS: Forward ARes with challenge URL
+        TDS->>PG: Challenge required
+        PG->>MS: Return challenge data
+        MS->>CB: Display challenge iframe
+
+        Note over CB,ACS: Customer Authentication Challenge
+        CB->>ACS: Render challenge (OTP / Biometric / Password)
+        
+        alt Challenge Succeeded
+            ACS->>CB: Challenge completed ✅
+            ACS->>DS: RReq (Result Request) - Authenticated
+            DS->>TDS: Forward authentication result
+            TDS->>PG: Authentication successful<br/>ECI = 05 (Visa) / 02 (MC)
+            PG->>MS: 3DS complete - proceed
+            MS->>CB: ✅ Payment authorized
+        else Challenge Failed
+            ACS->>CB: Challenge failed ❌
+            ACS->>DS: RReq - Not authenticated
+            DS->>TDS: Forward failure result
+            TDS->>PG: Authentication failed<br/>ECI = 07 (Visa) / 00 (MC)
+            PG->>MS: 3DS failed
+            MS->>CB: ❌ Payment declined
+        else Challenge Timeout
+            Note over CB: Customer abandons challenge
+            ACS->>DS: RReq - Timeout
+            DS->>TDS: Forward timeout
+            TDS->>PG: Authentication timeout
+            PG->>MS: 3DS timed out
+            MS->>CB: ⚠️ Payment expired - try again
+        end
+    else Attempt (Issuer not enrolled)
+        ACS->>DS: ARes - Issuer not participating
+        DS->>TDS: Forward ARes
+        TDS->>PG: Attempted authentication<br/>ECI = 06 (Visa) / 01 (MC)
+        PG->>MS: Proceed with liability shift to issuer
+        MS->>CB: ✅ Payment processing
+    end
+
+    Note over CB,ACS: Liability Shift: With successful 3DS,<br/>fraud liability shifts from merchant to issuer

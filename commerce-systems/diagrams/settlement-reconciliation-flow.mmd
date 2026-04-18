@@ -1,0 +1,72 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[End of business day\n⏰ Batch close triggered] --> B[Acquirer collects all\nauthorized & captured\ntransactions from merchant]
+
+    B --> C[Batch submitted to\ncard networks]
+    C --> D{Card network}
+    D -->|Visa| E[VisaNet settlement]
+    D -->|Mastercard| F[Banknet settlement]
+    D -->|Amex| G[Amex direct settlement]
+
+    E --> H[Card network calculates\ninterchange fees]
+    F --> H
+    G --> H
+
+    H --> I[Network settles with\nIssuing Banks]
+    I --> J[Issuing banks debit\ncardholder accounts]
+    J --> K[Issuing banks send\nfunds minus interchange\nto card network]
+
+    K --> L[Card network deducts\nnetwork assessment fee]
+    L --> M[Net amount sent\nto Acquiring Bank]
+
+    M --> N[Acquirer deducts\nprocessor markup fee]
+    N --> O[Acquirer deposits\nnet amount to merchant]
+    O --> P[💰 Merchant receives\npayout in bank account]
+
+    subgraph FEES [💳 Fee Breakdown - Merchant Discount Rate MDR]
+        direction TD
+        FE1[Total MDR: ~2.5-3.5%\nof transaction amount] --> FE2[Interchange fee ~1.5-2.5%\nPaid to Issuing Bank\nLargest component]
+        FE1 --> FE3[Network assessment ~0.13-0.15%\nPaid to Visa/MC]
+        FE1 --> FE4[Processor markup ~0.2-1.0%\nPaid to Acquirer/Processor]
+    end
+
+    P --> Q[Merchant receives\nsettlement report]
+    Q --> R{Reconciliation process}
+
+    R --> S[Match settlement amounts\nagainst captured orders]
+    R --> T[Identify discrepancies]
+    R --> U[Account for refunds\nprocessed in batch]
+    R --> V[Verify fee calculations]
+
+    S --> W{All matched?}
+    W -->|Yes ✅| X[Reconciliation complete\nBooks balanced]
+    W -->|No ⚠️| Y[Investigate discrepancies]
+
+    Y --> Z{Discrepancy type}
+    Z -->|Missing transaction| AA[Check if still pending\nor failed silently]
+    Z -->|Amount mismatch| AB[Check partial captures\nor currency conversion]
+    Z -->|Unexpected deduction| AC[Check chargebacks\nor retrieval requests]
+    Z -->|Duplicate| AD[Check for double\ncapture or retry]
+
+    AA & AB & AC & AD --> AE[Resolve & adjust\nfinancial records]
+    AE --> X
+
+    subgraph TIMELINE [⏱️ Settlement Timeline]
+        direction LR
+        TL1[Day 0\nTransaction captured] --> TL2[Day 0 EOD\nBatch closed]
+        TL2 --> TL3[Day 1\nSubmitted to network]
+        TL3 --> TL4[Day 1-2\nNetwork settles]
+        TL4 --> TL5[Day 2-3\nMerchant funded]
+    end
+
+    subgraph PRICING [Pricing Models]
+        direction LR
+        PM1[Interchange++\nTransparent pass-through\nof all components]
+        PM2[Flat rate\ne.g. 2.9% + $0.30\nSimple but higher cost]
+        PM3[Tiered pricing\nQualified/Mid/Non-qualified\nLeast transparent]
+    end
+
+    style A fill:#4A90D9,color:#fff
+    style P fill:#7ED321,color:#fff
+    style X fill:#7ED321,color:#fff
+    style Y fill:#F5A623,color:#fff

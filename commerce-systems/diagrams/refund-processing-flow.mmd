@@ -1,0 +1,72 @@
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#4A90D9', 'primaryTextColor': '#fff', 'primaryBorderColor': '#2C5F8A', 'lineColor': '#333', 'secondaryColor': '#F5A623', 'tertiaryColor': '#7ED321'}}}%%
+flowchart TD
+    A[Customer requests refund] --> B{Validate eligibility}
+    B --> C[Check refund window\nwithin policy period?]
+    B --> D[Check order status\ndelivered / completed?]
+    B --> E[Check amount\nwithin original total?]
+
+    C & D & E --> F{Eligible?}
+    F -->|No - outside window| G[❌ Refund denied\nInform customer of policy]
+    F -->|Yes| H{Payment capture status}
+
+    H -->|Not yet captured\nAuth only| I[VOID - Cancel authorization]
+    H -->|Already captured\nFunds settled| J{Refund type}
+
+    I --> I1[✅ Auth voided\nNo funds ever moved\nInstant release to customer]
+
+    J -->|Full refund| K[Refund entire\ntransaction amount]
+    J -->|Partial refund| L[Specify partial amount\nline-item or percentage]
+    J -->|Store credit| M[Issue store credit\nor gift card instead]
+
+    K --> N[Initiate refund via\npayment provider API]
+    L --> N
+    M --> M1[✅ Store credit issued\nImmediate availability]
+
+    N --> O{Payment method}
+    O -->|Card payment| P[Provider submits refund\nto card network]
+    O -->|Bank transfer / ACH| Q[Provider initiates\nreturn transfer]
+    O -->|Digital wallet| R[Refund to original\nwallet account]
+    O -->|BNPL| S[Provider adjusts\nremaining installments]
+
+    P --> T[Card network processes\nrefund to issuing bank]
+    T --> U[Issuing bank credits\ncustomer account]
+    U --> V[⚠️ Customer sees refund\n3-10 business days]
+
+    Q --> W[ACH/SEPA return\ninitiated]
+    W --> X[⚠️ Customer sees refund\n3-5 business days]
+
+    R --> Y[Wallet provider\nprocesses return]
+    Y --> Z[Customer sees refund\n1-3 business days]
+
+    S --> AA[BNPL adjusts plan\nor refunds paid installments]
+
+    V --> AB[Reconcile refund\nin merchant system]
+    X --> AB
+    Z --> AB
+    AA --> AB
+
+    AB --> AC[Update order status\nto refunded]
+    AC --> AD[Record in financial\nreporting & analytics]
+    AD --> AE[Send refund confirmation\nemail to customer]
+
+    subgraph CHARGEBACK [vs. Chargeback - Customer-initiated dispute]
+        direction TD
+        CB1[Customer disputes\nwith their bank] --> CB2[Bank forcibly reverses\nfunds from merchant]
+        CB2 --> CB3[Merchant charged\ndispute fee $15-$100]
+        CB3 --> CB4[❌ Worst outcome\nfor merchant]
+    end
+
+    subgraph COMPARISON [Void vs Refund vs Chargeback]
+        direction LR
+        CMP1[🟢 Void\nPre-capture\nInstant\nNo fees]
+        CMP2[🟡 Refund\nPost-capture\n3-10 days\nMinimal fees]
+        CMP3[🔴 Chargeback\nCustomer-initiated\n30-90 days\nHigh fees + penalties]
+    end
+
+    style A fill:#4A90D9,color:#fff
+    style G fill:#D0021B,color:#fff
+    style I1 fill:#7ED321,color:#fff
+    style M1 fill:#7ED321,color:#fff
+    style V fill:#F5A623,color:#fff
+    style X fill:#F5A623,color:#fff
+    style AE fill:#7ED321,color:#fff
