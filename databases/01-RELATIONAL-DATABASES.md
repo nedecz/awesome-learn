@@ -8,13 +8,14 @@
    - [Data Manipulation Language (DML)](#data-manipulation-language-dml)
    - [Data Query Language (DQL)](#data-query-language-dql)
    - [Joins](#joins)
-3. [Normalization](#normalization)
+3. [Composing Good SQL Scripts](#composing-good-sql-scripts)
+4. [Normalization](#normalization)
    - [First Normal Form (1NF)](#first-normal-form-1nf)
    - [Second Normal Form (2NF)](#second-normal-form-2nf)
    - [Third Normal Form (3NF)](#third-normal-form-3nf)
    - [Boyce-Codd Normal Form (BCNF)](#boyce-codd-normal-form-bcnf)
    - [When to Denormalize](#when-to-denormalize)
-4. [Indexing](#indexing)
+5. [Indexing](#indexing)
    - [B-Tree Indexes](#b-tree-indexes)
    - [Hash Indexes](#hash-indexes)
    - [GIN and GiST Indexes](#gin-and-gist-indexes)
@@ -22,15 +23,16 @@
    - [Covering Indexes](#covering-indexes)
    - [Partial Indexes](#partial-indexes)
    - [When to Index](#when-to-index)
-5. [Transactions](#transactions)
+6. [Transactions](#transactions)
    - [ACID Deep-Dive](#acid-deep-dive)
    - [Isolation Levels and Anomalies](#isolation-levels-and-anomalies)
    - [Write Skew and Phantoms](#write-skew-and-phantoms)
    - [Explicit Transactions](#explicit-transactions)
-6. [PostgreSQL](#postgresql)
-7. [MySQL](#mysql)
-8. [Comparison Table](#comparison-table)
-9. [Version History](#version-history)
+7. [PostgreSQL](#postgresql)
+8. [MySQL](#mysql)
+9. [SQL Server](#sql-server)
+10. [Comparison Table](#comparison-table)
+11. [Version History](#version-history)
 
 ---
 
@@ -239,6 +241,380 @@ SELECT e.name AS employee, m.name AS manager
 FROM employees e
 LEFT JOIN employees m ON e.manager_id = m.id;
 ```
+
+---
+
+## Composing Good SQL Scripts
+
+A good SQL script is predictable for the operator, safe for the database, and readable for the next engineer. Whether the script is a repeatable migration, a one-off repair, or an application query file, the quality bar is the same: make the intent obvious, make the blast radius small, and make the verification steps explicit.
+
+### Script Design Principles
+
+| Principle | What Good Looks Like | Common Failure Mode |
+|---|---|---|
+| **Deterministic** | Same input and same database state produce the same result | Non-deterministic updates, missing `ORDER BY`, hidden session settings |
+| **Idempotent** | Safe to re-run or clearly guarded against re-execution | Duplicate rows, duplicate indexes, repeated backfills |
+| **Bounded** | Every write has a precise predicate or batch boundary | `UPDATE table SET ...` without a restrictive `WHERE` clause |
+| **Observable** | Script reports what changed and how it was validated | No row counts, no post-change checks, silent failures |
+| **Vendor-aware** | Dialect-specific behavior is called out where it matters | Copying PostgreSQL syntax into MySQL or SQL Server unchanged |
+| **Reversible** | Rollback or forward-fix strategy is documented before execution | Hotfixes that cannot be safely undone |
+
+### Recommended Script Anatomy
+
+1. **State the goal and execution context first.** Name the target schema, the expected preconditions, and whether the script is intended for PostgreSQL, MySQL, SQL Server, or ANSI SQL only.
+2. **Separate DDL, data changes, and verification.** Schema changes, backfills, and validation queries should be easy to identify at a glance. Avoid mixing exploration queries into a deployment script.
+3. **Prefer idempotent guards.** Use `IF EXISTS`, `IF NOT EXISTS`, `WHERE NOT EXISTS`, or metadata checks so that retries do not corrupt state.
+4. **Control transactions deliberately.** Keep write transactions short, understand locking side effects, and remember that many MySQL DDL statements auto-commit even when wrapped in a transaction.
+5. **Make risky writes bounded.** Large repairs should run in batches, and every destructive statement should include a narrow predicate plus a pre-flight `SELECT` using the same filter.
+6. **Use precise types and stable names.** Match parameter types to column types, schema-qualify objects (`dbo.orders`, `sales.orders`), and avoid ambiguous aliases.
+7. **Make validation part of the script.** Add row-count checks, null checks, duplicate checks, or index verification queries immediately after the change.
+8. **Document rollback or forward-fix strategy.** For additive changes, rollback may mean disabling the feature and leaving the new column in place. For destructive changes, require a tested restore path first.
+
+### Dialect Notes That Change Script Design
+
+| Concern | PostgreSQL | MySQL | SQL Server |
+|---|---|---|---|
+| **Batch separator** | Standard `;` terminator | Standard `;`; `DELIMITER` only in client tools for routines | `GO` is a client-tool batch separator, not T-SQL syntax inside application queries, but deployment tools and SSMS/sqlcmd scripts still rely on it after some module definitions and context changes |
+| **DDL transactions** | Most DDL is transactional | Many DDL statements cause implicit commit | Many DDL statements can participate in a transaction, but some operations and tooling batches have restrictions |
+| **Online schema change** | Often metadata-only or low-lock, but verify | Use `ALGORITHM=INSTANT/INPLACE` and `LOCK=NONE` when supported | Prefer online/rebuild options supported by the edition and operation |
+| **Parameterized execution** | Prepared statements / bind variables | Prepared statements / bind variables | Prefer `sp_executesql` with typed parameters |
+| **Return changed rows** | `RETURNING` is first-class | Feature support is narrower; often follow with explicit verification query | `OUTPUT inserted...` / `OUTPUT deleted...` |
+
+### Annotated Example: a Safe Backfill Script
+
+```sql
+-- Goal: add archived_at to orders and backfill completed rows.
+-- Preconditions: application no longer writes archived_at directly; backfill is safe to retry.
+
+-- 1) Pre-flight check: know exactly how many rows should change.
+SELECT COUNT(*) AS rows_to_archive
+FROM orders
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+
+-- 2) Apply the smallest schema change first.
+ALTER TABLE orders
+ADD COLUMN archived_at TIMESTAMP NULL;
+
+-- 3) Backfill using a bounded predicate.
+UPDATE orders
+SET archived_at = updated_at
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+
+-- 4) Validate the outcome immediately.
+SELECT COUNT(*) AS remaining_nulls
+FROM orders
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+```
+
+Why this script is good:
+
+- **The pre-flight query and the update share the same predicate.** That is the easiest way to catch an accidental full-table update before it happens.
+- **The change is additive first.** Adding a nullable column is usually safer than adding a non-null column and trying to populate it in one risky step.
+- **The validation query proves completion.** You should not rely on the absence of errors as proof that the script did the right thing.
+- **The script is easy to adapt per engine.** In MySQL, validate whether the `ALTER TABLE` can use `ALGORITHM=INSTANT` or `LOCK=NONE`; in SQL Server, consider `SET XACT_ABORT ON` and batch large updates to protect the log and lock manager.
+
+### Idempotency Patterns by Engine
+
+Writing idempotent SQL varies across engines. Here are the most reliable patterns for the three most common scenarios: adding a column, creating an index, and upserting a row.
+
+#### PostgreSQL
+
+```sql
+-- Idempotent column addition (PostgreSQL 9.6+)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+-- Idempotent index creation
+CREATE INDEX IF NOT EXISTS idx_orders_archived_at ON orders(archived_at)
+  WHERE archived_at IS NOT NULL;
+
+-- Idempotent row upsert: insert or update on conflict
+INSERT INTO config (config_key, config_value)
+VALUES ('feature_x', 'enabled')
+ON CONFLICT (config_key)
+DO UPDATE SET config_value = EXCLUDED.config_value,
+              updated_at   = now();
+```
+
+#### MySQL
+
+MySQL has improved `IF EXISTS` / `IF NOT EXISTS` support over time, but teams often still use
+`information_schema` plus prepared statements so the same migration can run across mixed 5.7/8.0
+fleets and older managed database versions.
+
+```sql
+-- Check whether column exists before adding (works on all supported MySQL versions)
+SET @col_exists := (
+  SELECT COUNT(*) FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name   = 'orders'
+    AND column_name  = 'archived_at'
+);
+
+SET @ddl := IF(
+  @col_exists = 0,
+  'ALTER TABLE orders ADD COLUMN archived_at TIMESTAMP NULL, ALGORITHM=INSTANT',
+  'SELECT ''archived_at already exists'' AS msg'
+);
+
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Idempotent index creation
+SET @idx_exists := (
+  SELECT COUNT(*) FROM information_schema.statistics
+  WHERE table_schema = DATABASE()
+    AND table_name   = 'orders'
+    AND index_name   = 'idx_orders_archived_at'
+);
+
+SET @ddl := IF(
+  @idx_exists = 0,
+  'CREATE INDEX idx_orders_archived_at ON orders(archived_at)',
+  'SELECT ''idx_orders_archived_at already exists'' AS msg'
+);
+
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Idempotent row upsert
+-- MySQL 8.0.20+ preferred syntax:
+INSERT INTO config (config_key, config_value)
+VALUES ('feature_x', 'enabled')
+AS new
+ON DUPLICATE KEY UPDATE config_value = new.config_value;
+
+-- MySQL 5.7 / early 8.0 equivalent:
+-- INSERT INTO config (config_key, config_value)
+-- VALUES ('feature_x', 'enabled')
+-- ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
+```
+
+#### SQL Server
+
+SQL Server provides `IF NOT EXISTS` guards via catalog views. Use `GO` to separate batches
+inside `sqlcmd` / SSMS scripts.
+
+```sql
+-- Idempotent column addition
+IF NOT EXISTS (
+  SELECT 1 FROM sys.columns
+  WHERE object_id = OBJECT_ID('dbo.orders')
+    AND name = 'archived_at')
+  ALTER TABLE dbo.orders ADD archived_at DATETIME2 NULL;
+GO
+
+-- Idempotent index creation
+IF NOT EXISTS (
+  SELECT 1 FROM sys.indexes
+  WHERE object_id = OBJECT_ID('dbo.orders')
+    AND name = 'IX_orders_archived_at')
+  CREATE NONCLUSTERED INDEX IX_orders_archived_at
+    ON dbo.orders (archived_at)
+    WHERE archived_at IS NOT NULL;
+GO
+
+-- Idempotent row upsert: prefer UPDATE + INSERT for singleton writes
+BEGIN TRANSACTION;
+
+UPDATE dbo.config WITH (UPDLOCK, SERIALIZABLE)
+SET    config_value = 'enabled'
+WHERE  config_key   = 'feature_x';
+
+IF @@ROWCOUNT = 0
+BEGIN
+  INSERT INTO dbo.config (config_key, config_value)
+  VALUES ('feature_x', 'enabled');
+END
+
+COMMIT TRANSACTION;
+```
+
+For singleton upserts in OLTP code, many teams prefer `UPDATE ... IF @@ROWCOUNT = 0 INSERT`
+over `MERGE` because `MERGE` has a longer history of concurrency and optimizer edge cases.
+
+### Batching Large Writes
+
+Updating or deleting millions of rows in a single statement locks too many rows, bloats the
+transaction log, and blocks concurrent traffic. Use small, restart-safe batches instead.
+
+#### MySQL — repeatable statement with LIMIT
+
+```sql
+-- Run this statement repeatedly from the application or migration runner
+-- until rows_updated = 0. MySQL LOOP/WHILE syntax is only valid inside
+-- stored procedures and events, not in a plain script file.
+UPDATE orders
+SET    archived_at = updated_at
+WHERE  status IN ('completed', 'cancelled')
+  AND  archived_at IS NULL
+ORDER BY id
+LIMIT  1000;
+
+SELECT ROW_COUNT() AS rows_updated;
+
+-- Optional pause between batches so replicas and the redo log can catch up
+DO SLEEP(0.1);
+```
+
+#### PostgreSQL — CTE with LIMIT
+
+```sql
+-- Batch via writable CTE; repeat until 0 rows are returned
+WITH batch AS (
+  SELECT id FROM orders
+  WHERE  status IN ('completed', 'cancelled')
+    AND  archived_at IS NULL
+  LIMIT  1000
+  FOR UPDATE SKIP LOCKED
+)
+UPDATE orders
+SET    archived_at = updated_at
+WHERE  id IN (SELECT id FROM batch);
+
+-- Run in a loop from the application or a DO block until no rows are updated.
+-- The FOR UPDATE SKIP LOCKED avoids blocking other concurrent batch workers.
+```
+
+#### SQL Server — TOP with WHILE loop
+
+```sql
+SET XACT_ABORT ON;
+
+DECLARE @batch_size INT = 1000;
+DECLARE @rows_updated INT = 1;
+
+WHILE @rows_updated > 0
+BEGIN
+  BEGIN TRANSACTION;
+
+  UPDATE TOP (@batch_size) dbo.orders
+  SET    archived_at = updated_at
+  WHERE  status IN ('completed', 'cancelled')
+    AND  archived_at IS NULL;
+
+  SET @rows_updated = @@ROWCOUNT;
+  COMMIT TRANSACTION;
+
+  -- Brief pause between batches to reduce log pressure
+  WAITFOR DELAY '00:00:00.100';
+END
+```
+
+### Transaction Control by Engine
+
+Each engine handles DDL inside transactions differently. Knowing this before writing a
+deployment script prevents silent partial changes.
+
+#### PostgreSQL — DDL is transactional
+
+```sql
+-- PostgreSQL DDL participates in transactions; schema changes roll back on error.
+BEGIN;
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS priority SMALLINT NOT NULL DEFAULT 0;
+
+UPDATE orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate inside the transaction before committing
+DO $$
+BEGIN
+  IF (SELECT COUNT(*) FROM orders
+      WHERE customer_tier = 'gold' AND priority <> 1) > 0
+  THEN
+    RAISE EXCEPTION 'priority backfill validation failed — rolling back';
+  END IF;
+END;
+$$;
+
+COMMIT;
+```
+
+#### MySQL — DDL causes an implicit commit
+
+```sql
+-- Step 1: schema change. MySQL auto-commits this regardless of any wrapping transaction.
+ALTER TABLE orders
+  ADD COLUMN priority TINYINT NOT NULL DEFAULT 0,
+  ALGORITHM = INSTANT;   -- fastest path; falls back to INPLACE if INSTANT is unavailable
+
+-- Step 2: data change in an explicit transaction.
+START TRANSACTION;
+
+UPDATE orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate before committing
+SELECT COUNT(*) AS should_be_zero
+FROM   orders
+WHERE  customer_tier = 'gold'
+  AND  priority <> 1;
+-- If result = 0, the backfill is correct.
+
+COMMIT;
+```
+
+#### SQL Server — DDL inside a transaction with XACT_ABORT
+
+```sql
+SET XACT_ABORT ON;   -- any runtime error triggers automatic rollback
+
+BEGIN TRANSACTION;
+
+-- Schema change participates in the transaction
+ALTER TABLE dbo.orders ADD priority TINYINT NOT NULL DEFAULT 0;
+
+-- Data backfill
+UPDATE dbo.orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate before committing
+IF (SELECT COUNT(*)
+    FROM   dbo.orders
+    WHERE  customer_tier = 'gold' AND priority <> 1) > 0
+BEGIN
+  ROLLBACK TRANSACTION;
+  RAISERROR('priority backfill validation failed', 16, 1);
+  RETURN;
+END
+
+COMMIT TRANSACTION;
+```
+
+### Choosing the Right Script Shape
+
+| Situation | Preferred Shape | Why |
+|---|---|---|
+| **Small additive schema change** | Single migration with inline verification | Fast to review, easy to rollback if the engine supports transactional DDL |
+| **Large backfill on a hot table** | Expand/contract migration plus batched worker or migration runner | Keeps locks short and lets you pause or resume safely |
+| **One-off production repair** | Pre-flight `SELECT`, bounded `UPDATE` / `DELETE`, post-flight validation | Minimizes blast radius and gives operators a clear checklist |
+| **Recurring cleanup job** | Stored procedure or application job with checkpoints | Easier to monitor, retry, and alert on than a copied SQL snippet |
+| **Cross-engine product code** | Parameterized application SQL plus vendor-specific migration files | Avoids hiding dialect assumptions inside "portable" SQL that is not portable in practice |
+
+Two common mistakes:
+
+- **Using stored-procedure control flow where the deployment tool runs plain SQL scripts.** `LOOP`, `WHILE`, and `DECLARE` blocks are often client- or engine-specific.
+- **Assuming DDL behaves like DML.** PostgreSQL often rolls schema changes back cleanly; MySQL frequently auto-commits them; SQL Server behavior depends on the specific operation and batch boundaries.
+
+### SQL Script Review Checklist
+
+Before running a script in staging or production, verify that all of the following are true:
+
+- The script declares its target database engine and any version assumptions that matter.
+- Every `UPDATE` or `DELETE` has a restrictive predicate and a matching dry-run `SELECT`.
+- Long-running changes are split into small, restart-safe batches.
+- Object names are schema-qualified and naming is consistent.
+- Application-issued SQL uses parameters instead of string interpolation.
+- The script includes verification queries, not just change statements.
+- The operator knows whether rollback means `ROLLBACK`, a compensating migration, or restore-from-backup.
 
 ---
 
@@ -899,6 +1275,191 @@ ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ---
 
+## SQL Server
+
+SQL Server is Microsoft's flagship relational database, widely used for enterprise OLTP, reporting, BI, and .NET-centric systems. Its strengths are strong tooling, mature operational features, and deep integration with the Microsoft ecosystem.
+
+### Key Features
+
+- **T-SQL:** Rich procedural SQL dialect with variables, error handling, table-valued parameters, and strong administrative tooling.
+- **Query Store:** Built-in plan history, regression detection, and plan forcing for stabilizing important workloads.
+- **Availability features:** Always On availability groups, failover clustering, log shipping, and replication options for different recovery objectives.
+- **Indexing options:** Clustered and nonclustered rowstore indexes, filtered indexes, columnstore indexes, and indexed views.
+- **Security and governance:** Row-level security, dynamic data masking, transparent data encryption, auditing, and integration with Active Directory.
+
+### Storage and Indexing Model
+
+SQL Server tables are typically organized around a **clustered index**. If you do not define one, the table may remain a heap, which is often undesirable for hot OLTP workloads because updates can create forwarded records and make lookups more expensive.
+
+**Rules of thumb:**
+
+- Choose a **narrow, stable, ever-increasing clustered key** for write-heavy OLTP tables.
+- Use **nonclustered indexes** for lookup patterns and include extra columns when you want covering behavior.
+- Use **columnstore indexes** for analytical queries and large aggregations, not as a default for transactional tables.
+- Watch for **implicit conversions** between parameters and indexed columns, because they can turn seeks into scans.
+
+### Concurrency and Isolation
+
+SQL Server defaults to **Read Committed**. In many mixed read/write systems, enabling **Read Committed Snapshot Isolation (RCSI)** is an effective way to reduce reader/writer blocking without forcing every query to use unsafe hints. Snapshot-based isolation moves older row versions into `tempdb`, so monitor version-store growth and long-running transactions.
+
+### SQL Server Operational Notes
+
+- **Enable Query Store** in production and review regressed plans before forcing hints or rewriting queries.
+- **Pre-size the transaction log and `tempdb`.** Treat autogrowth as a safety net, not a sizing strategy.
+- **Use schema-qualified names** and typed parameters so execution plans are predictable.
+- **Prefer `sp_executesql` over `EXEC()`** for dynamic SQL to get plan reuse and protection from SQL injection.
+- **Use `SET XACT_ABORT ON`** in deployment and data-fix scripts so runtime errors abort the entire transaction instead of leaving partial changes behind.
+
+### T-SQL Examples
+
+**Defining a table with an explicit clustered key and a covering nonclustered index:**
+
+```sql
+-- Clustered by IDENTITY key for sequential inserts; nonclustered for customer lookups
+CREATE TABLE dbo.orders (
+    order_id    BIGINT        NOT NULL IDENTITY(1,1),
+    customer_id BIGINT        NOT NULL,
+    status      NVARCHAR(20)  NOT NULL DEFAULT N'pending',
+    total_cents BIGINT        NOT NULL,
+    created_at  DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_orders PRIMARY KEY CLUSTERED (order_id)
+);
+
+-- Covering nonclustered: avoids a key lookup for the common customer-order query
+CREATE NONCLUSTERED INDEX IX_orders_customer_status
+  ON dbo.orders (customer_id, status)
+  INCLUDE (total_cents, created_at);
+
+-- Filtered nonclustered: smaller and faster for the subset that matters
+CREATE NONCLUSTERED INDEX IX_orders_pending
+  ON dbo.orders (created_at)
+  WHERE status = N'pending';
+```
+
+**Explicit transaction with structured error handling:**
+
+```sql
+SET XACT_ABORT ON;
+
+BEGIN TRY
+  BEGIN TRANSACTION;
+
+  -- Debit sender
+  UPDATE dbo.accounts
+  SET    balance = balance - 100
+  WHERE  account_id = 1;
+
+  -- Credit recipient
+  UPDATE dbo.accounts
+  SET    balance = balance + 100
+  WHERE  account_id = 2;
+
+  COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+  IF @@TRANCOUNT > 0
+    ROLLBACK TRANSACTION;
+
+  -- Re-raise the original error to the caller
+  THROW;
+END CATCH;
+```
+
+**Enabling Query Store and RCSI:**
+
+```sql
+-- Enable Query Store (persists execution plan history across restarts)
+ALTER DATABASE appdb
+  SET QUERY_STORE = ON
+  WITH (
+    OPERATION_MODE        = READ_WRITE,
+    MAX_STORAGE_SIZE_MB   = 1024,
+    QUERY_CAPTURE_MODE    = AUTO
+  );
+
+-- Enable RCSI (readers no longer block on writers; requires brief exclusive lock on the DB)
+ALTER DATABASE appdb SET READ_COMMITTED_SNAPSHOT ON;
+
+-- Verify the setting
+SELECT name, is_read_committed_snapshot_on
+FROM   sys.databases
+WHERE  name = DB_NAME();
+```
+
+**Parameterized dynamic SQL to get plan reuse:**
+
+```sql
+-- ❌ Anti-pattern: concatenated SQL gets a separate plan each time
+EXEC ('SELECT total_amount FROM sales.orders WHERE customer_id = ' + @id);
+
+-- ✅ Correct: sp_executesql with typed parameter — one plan is compiled and reused
+EXEC sp_executesql
+    N'SELECT total_amount FROM sales.orders WHERE customer_id = @customer_id',
+    N'@customer_id BIGINT',
+    @customer_id = 42;
+```
+
+### SQL Server Monitoring Queries
+
+**Top queries by average CPU time (Query Store):**
+
+```sql
+SELECT TOP 20
+    OBJECT_NAME(qsq.object_id)           AS proc_name,
+    qsq.query_id,
+    qsrs.count_executions,
+    ROUND(qsrs.avg_cpu_time   / 1000.0, 2) AS avg_cpu_ms,
+    ROUND(qsrs.avg_duration   / 1000.0, 2) AS avg_duration_ms,
+    ROUND(qsrs.avg_logical_io_reads, 0)    AS avg_logical_reads,
+    LEFT(qsqt.query_sql_text, 200)         AS query_text
+FROM sys.query_store_runtime_stats   AS qsrs
+JOIN sys.query_store_plan            AS qsqp ON qsqp.plan_id        = qsrs.plan_id
+JOIN sys.query_store_query           AS qsq  ON qsq.query_id        = qsqp.query_id
+JOIN sys.query_store_query_text      AS qsqt ON qsqt.query_text_id  = qsq.query_text_id
+ORDER BY qsrs.avg_cpu_time DESC;
+```
+
+**Wait statistics — find the root cause of latency:**
+
+```sql
+SELECT TOP 20
+    wait_type,
+    waiting_tasks_count,
+    ROUND(wait_time_ms / 1000.0, 1)        AS wait_time_sec,
+    ROUND(signal_wait_time_ms / 1000.0, 1) AS cpu_queue_sec,
+    ROUND(
+        100.0 * wait_time_ms
+        / NULLIF(SUM(wait_time_ms) OVER (), 0), 2)  AS pct_of_total
+FROM sys.dm_os_wait_stats
+WHERE wait_type NOT IN (
+    'SLEEP_TASK','BROKER_TO_FLUSH','BROKER_EVENTHANDLER',
+    'REQUEST_FOR_DEADLOCK_SEARCH','CHECKPOINT_QUEUE',
+    'SQLTRACE_BUFFER_FLUSH','CLR_AUTO_EVENT',
+    'DISPATCHER_QUEUE_SEMAPHORE','XE_TIMER_EVENT',
+    'FT_IFTS_SCHEDULER_IDLE_WAIT','WAITFOR',
+    'LAZYWRITER_SLEEP','LOGMGR_QUEUE',
+    'ONDEMAND_TASK_QUEUE','XE_DISPATCHER_WAIT')
+ORDER BY wait_time_ms DESC;
+```
+
+**Find tables stored as heaps (no clustered index):**
+
+```sql
+SELECT
+    OBJECT_SCHEMA_NAME(i.object_id)  AS schema_name,
+    OBJECT_NAME(i.object_id)         AS table_name,
+    SUM(p.rows)                      AS row_count
+FROM sys.indexes    AS i
+JOIN sys.partitions AS p
+  ON p.object_id = i.object_id AND p.index_id = i.index_id
+WHERE i.type = 0   -- 0 = HEAP (no clustered index)
+  AND OBJECTPROPERTY(i.object_id, 'IsUserTable') = 1
+GROUP BY i.object_id
+ORDER BY row_count DESC;
+```
+
+---
+
 ## Comparison Table
 
 | Feature | PostgreSQL | MySQL (InnoDB) | SQL Server |
@@ -927,4 +1488,6 @@ ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.2 | 2026 | Refined script guidance with safer MySQL batching, safer SQL Server upsert guidance, and a script-shape decision table |
+| 1.1 | 2026 | Added comprehensive SQL script composition guidance and SQL Server coverage |
 | 1.0 | 2025 | Initial relational databases documentation |

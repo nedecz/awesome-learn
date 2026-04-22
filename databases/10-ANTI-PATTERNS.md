@@ -20,6 +20,7 @@ A catalogue of the most common database mistakes — what they look like, why th
 - [10. Premature Sharding](#10-premature-sharding)
 - [11. Not Using Transactions](#11-not-using-transactions)
 - [12. Schema Changes Without Migration Tools](#12-schema-changes-without-migration-tools)
+- [13. MySQL and SQL Server Engine-Specific Anti-Patterns](#13-mysql-and-sql-server-engine-specific-anti-patterns)
 - [Quick Reference Checklist](#quick-reference-checklist)
 - [Next Steps](#next-steps)
 - [Version History](#version-history)
@@ -64,6 +65,7 @@ The patterns documented here represent real failures observed across production 
 | 10 | Premature Sharding | Architecture | 🟡 Medium |
 | 11 | Not Using Transactions | Data Integrity | 🔴 Critical |
 | 12 | Schema Changes Without Migration Tools | Operations | 🟠 High |
+| 13 | MySQL and SQL Server Engine-Specific Anti-Patterns | Engine-Specific | 🟠 High |
 
 ---
 
@@ -1481,6 +1483,605 @@ Phase 3: CONTRACT — remove old column (after all app instances updated)
 
 ---
 
+## 13. MySQL and SQL Server Engine-Specific Anti-Patterns
+
+Engine choice does not replace fundamentals, but it does change which mistakes are most expensive. The following anti-patterns show up repeatedly in production incidents on MySQL and SQL Server systems.
+
+For a consolidated copy-paste runbook of related detection queries, see
+[13-QUERY-REFERENCE.md](13-QUERY-REFERENCE.md).
+
+---
+
+### MySQL Anti-Pattern: Using MyISAM for Transactional Workloads
+
+#### Problem
+
+MyISAM tables have no crash recovery, no foreign keys, and use table-level locking. After an unclean shutdown, they require a manual `REPAIR TABLE` that can take hours on large tables. Any concurrent writes are fully blocked during the repair.
+
+#### Detection
+
+```sql
+-- Find all non-InnoDB tables in the application database
+SELECT table_schema, table_name, engine
+FROM   information_schema.tables
+WHERE  table_schema NOT IN ('information_schema', 'mysql', 'performance_schema', 'sys')
+  AND  engine <> 'InnoDB'
+ORDER BY table_schema, table_name;
+```
+
+#### Recommended Fix
+
+```sql
+-- Convert a single table online (may cause a full table rebuild; time on staging first)
+ALTER TABLE legacy_table ENGINE = InnoDB, ALGORITHM = INPLACE, LOCK = NONE;
+
+-- Confirm the conversion
+SELECT table_name, engine
+FROM   information_schema.tables
+WHERE  table_schema = 'myapp'
+  AND  table_name   = 'legacy_table';
+```
+
+---
+
+### MySQL Anti-Pattern: Legacy `utf8` or Mixed Collations
+
+#### Problem
+
+MySQL's `utf8` charset is a 3-byte subset of UTF-8. It cannot store 4-byte characters
+(emoji, many CJK extensions, mathematical symbols), silently truncating or erroring instead.
+Mixed collations across joined columns also force index-defeating implicit conversions.
+
+#### Detection
+
+```sql
+-- Tables not on utf8mb4
+SELECT table_schema, table_name, table_collation
+FROM   information_schema.tables
+WHERE  table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+  AND  table_collation NOT LIKE 'utf8mb4%';
+
+-- Columns with a different character set than the rest of the application
+SELECT table_schema, table_name, column_name,
+       character_set_name, collation_name
+FROM   information_schema.columns
+WHERE  character_set_name IS NOT NULL
+  AND  character_set_name <> 'utf8mb4'
+  AND  table_schema NOT IN ('information_schema','mysql','performance_schema','sys');
+```
+
+#### Recommended Fix
+
+```sql
+-- Convert one table (test migration time on a staging snapshot first)
+ALTER TABLE posts
+  CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  ALGORITHM = INPLACE, LOCK = NONE;
+
+-- Set the default for new tables in application code / migration tool
+-- my.cnf:
+-- character_set_server  = utf8mb4
+-- collation_server      = utf8mb4_0900_ai_ci
+```
+
+---
+
+### MySQL Anti-Pattern: Random UUID Primary Keys on InnoDB Tables
+
+#### Problem
+
+InnoDB stores all rows in primary key order (clustered index). Random UUIDs cause every
+insert to land in a random page, resulting in:
+
+- Constant B-Tree page splits
+- Severe fragmentation of the clustered index
+- Much larger secondary indexes (each stores the full PK)
+- Much worse buffer pool utilization — nearly every insert evicts a warm page
+
+#### Detection
+
+```sql
+-- Identify UUID-like VARCHAR or CHAR(36) primary key columns
+SELECT table_schema, table_name, column_name, data_type, column_key
+FROM   information_schema.columns
+WHERE  column_key = 'PRI'
+  AND  (data_type IN ('char', 'varchar') AND character_maximum_length = 36)
+  AND  table_schema NOT IN ('information_schema','mysql','performance_schema','sys');
+
+-- Measure table fragmentation for a suspected table
+SELECT
+  table_name,
+  ROUND(data_length   / 1024 / 1024, 2) AS data_mb,
+  ROUND(index_length  / 1024 / 1024, 2) AS index_mb,
+  ROUND(data_free     / 1024 / 1024, 2) AS free_mb,
+  ROUND(100 * data_free / NULLIF(data_length + index_length + data_free, 0), 1) AS frag_pct
+FROM   information_schema.tables
+WHERE  table_schema = 'myapp'
+  AND  table_name   = 'orders';
+```
+
+#### Recommended Fix
+
+```sql
+-- ❌ Anti-pattern: random UUID as PK
+CREATE TABLE orders_bad (
+    id         CHAR(36)      PRIMARY KEY DEFAULT (UUID()),
+    customer_id BIGINT       NOT NULL,
+    total_cents BIGINT       NOT NULL
+) ENGINE = InnoDB;
+
+-- ✅ Better: BIGINT IDENTITY (sequential, compact)
+CREATE TABLE orders_good (
+    id          BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    customer_id BIGINT        NOT NULL,
+    total_cents BIGINT        NOT NULL
+) ENGINE = InnoDB;
+
+-- ✅ Also good: UUID stored as binary in time-ordered form (MySQL 8.0+)
+CREATE TABLE orders_uuid (
+    id          BINARY(16)    NOT NULL DEFAULT (UUID_TO_BIN(UUID(), 1)) PRIMARY KEY,
+    customer_id BIGINT        NOT NULL,
+    total_cents BIGINT        NOT NULL
+) ENGINE = InnoDB;
+-- UUID_TO_BIN(..., 1) rearranges the time component to the front,
+-- producing monotonically increasing values and eliminating random insertion.
+```
+
+---
+
+### MySQL Anti-Pattern: Statement-Based Replication with Non-Deterministic Writes
+
+#### Problem
+
+Statement-based replication (SBR) replays the SQL statement on each replica. If the
+statement uses `NOW()`, `RAND()`, `UUID()`, or calls a stored function with side effects,
+each replica can produce a different result — silently diverging from the primary.
+
+#### Detection
+
+```sql
+-- Check the current binlog format
+SHOW VARIABLES LIKE 'binlog_format';
+-- If result is 'STATEMENT', investigate every write that uses non-deterministic functions.
+
+-- Search for non-deterministic patterns in stored routines
+SELECT routine_schema, routine_name, routine_definition
+FROM   information_schema.routines
+WHERE  routine_definition REGEXP 'NOW\(\)|RAND\(\)|UUID\(\)|SYSDATE\(\)'
+  AND  routine_schema NOT IN ('information_schema','mysql','performance_schema','sys');
+```
+
+#### Recommended Fix
+
+```ini
+# my.cnf — switch to row-based replication and enable GTID
+[mysqld]
+binlog_format            = ROW
+binlog_row_image         = FULL        # stores full before/after row images
+gtid_mode                = ON
+enforce_gtid_consistency = ON
+```
+
+```sql
+-- Verify after restart
+SHOW VARIABLES LIKE 'binlog_format';
+SHOW VARIABLES LIKE 'gtid_mode';
+
+-- Verify replica is consistent
+SHOW REPLICA STATUS\G
+-- Look for: Seconds_Behind_Source = 0 and no errors in Last_SQL_Error
+```
+
+---
+
+### MySQL Anti-Pattern: Blocking `ALTER TABLE` During Peak Traffic
+
+#### Problem
+
+When MySQL cannot execute a DDL change as `ALGORITHM=INSTANT` or `ALGORITHM=INPLACE`, it
+falls back to a full table copy — which holds a metadata lock that blocks all concurrent
+reads and writes until it completes. On a 50 M row table that can mean 30–90 minutes of
+downtime, even though no one asked for it.
+
+#### Detection
+
+```sql
+-- Check what algorithm MySQL would use BEFORE running the real ALTER
+EXPLAIN ALTER TABLE orders
+  ADD COLUMN priority TINYINT NOT NULL DEFAULT 0,
+  ALGORITHM = INSTANT;
+-- If error: ER_ALTER_OPERATION_NOT_SUPPORTED, fall back to INPLACE or use gh-ost
+
+-- While an ALTER is running, inspect metadata locks
+SELECT
+  ml.OBJECT_SCHEMA,
+  ml.OBJECT_NAME,
+  ml.LOCK_TYPE,
+  ml.LOCK_STATUS,
+  t.PROCESSLIST_ID,
+  t.PROCESSLIST_INFO
+FROM performance_schema.metadata_locks AS ml
+JOIN performance_schema.threads        AS t
+  ON t.THREAD_ID = ml.OWNER_THREAD_ID
+WHERE ml.OBJECT_SCHEMA = DATABASE()
+  AND ml.OBJECT_NAME   = 'orders';
+```
+
+`information_schema.innodb_lock_waits` only showed row-lock waits, was deprecated in MySQL 5.7,
+and was removed in MySQL 8.0. For modern MySQL, use `performance_schema.metadata_locks` for DDL
+blocking and `performance_schema.data_locks` / `data_lock_waits` for row-lock analysis.
+
+#### Recommended Fix
+
+```sql
+-- Step 1: check whether INSTANT is available (fastest, no rebuild)
+ALTER TABLE orders
+  ADD COLUMN priority TINYINT NOT NULL DEFAULT 0,
+  ALGORITHM = INSTANT;
+
+-- Step 2: if INSTANT fails, try INPLACE with no lock (background rebuild)
+ALTER TABLE orders
+  ADD COLUMN priority TINYINT NOT NULL DEFAULT 0,
+  ALGORITHM = INPLACE, LOCK = NONE;
+```
+
+```bash
+# Step 3: for large tables where even INPLACE causes replica lag, use gh-ost
+gh-ost   --host=primary.db.internal   --database=myapp   --table=orders   --alter="ADD COLUMN priority TINYINT NOT NULL DEFAULT 0"   --execute
+# gh-ost uses a shadow table and binary log streaming; the cutover is a millisecond rename.
+```
+
+---
+
+### SQL Server Anti-Pattern: Using `NOLOCK` as a Default Performance Fix
+
+#### Problem
+
+`WITH (NOLOCK)` / `READ UNCOMMITTED` reads dirty (uncommitted) data and can produce:
+
+- **Phantom rows** — rows that appear and disappear mid-read
+- **Missing rows** — rows skipped due to page splits during the scan
+- **Duplicate rows** — same row returned twice for the same reason
+- **Non-repeatable reads** — the same row returns different values in the same query
+
+In financial and reporting contexts, these produce wrong totals with no error to debug.
+
+#### Detection
+
+```sql
+-- Find NOLOCK / READUNCOMMITTED hints in stored procedures, functions, and views
+SELECT
+    o.type_desc,
+    OBJECT_SCHEMA_NAME(o.object_id) + '.' + o.name AS object_name,
+    m.definition
+FROM sys.sql_modules AS m
+JOIN sys.objects     AS o ON o.object_id = m.object_id
+WHERE m.definition LIKE '%NOLOCK%'
+   OR m.definition LIKE '%READUNCOMMITTED%'
+ORDER BY o.type_desc, object_name;
+```
+
+#### Recommended Fix
+
+```sql
+-- ❌ Anti-pattern: NOLOCK for "speed"
+SELECT order_id, total_cents
+FROM   dbo.orders WITH (NOLOCK)
+WHERE  customer_id = 42;
+
+-- ✅ Step 1: enable RCSI so reads don't block (do this once per database)
+ALTER DATABASE appdb SET READ_COMMITTED_SNAPSHOT ON;
+
+-- ✅ Step 2: remove the NOLOCK hints — READ COMMITTED now uses row versions, not locks
+SELECT order_id, total_cents
+FROM   dbo.orders
+WHERE  customer_id = 42;
+-- Reads are now non-blocking AND correct.
+```
+
+---
+
+### SQL Server Anti-Pattern: Implicit Conversions Between Parameters and Indexed Columns
+
+#### Problem
+
+When a parameter's data type does not exactly match the indexed column's type, SQL Server
+must convert every value in the index before it can compare — turning an index seek into a
+full scan. This often shows up as "Type conversion in expression" warnings in execution
+plans and is one of the most common causes of "fast in testing, slow in production" bugs.
+
+#### Detection
+
+```sql
+-- Find implicit conversion warnings in Query Store plans
+SELECT TOP 20
+    qsq.query_id,
+    LEFT(qsqt.query_sql_text, 200)           AS query_text,
+    TRY_CAST(qsqp.query_plan AS NVARCHAR(MAX)) AS plan_xml
+FROM sys.query_store_query       AS qsq
+JOIN sys.query_store_query_text  AS qsqt ON qsqt.query_text_id  = qsq.query_text_id
+JOIN sys.query_store_plan        AS qsqp ON qsqp.query_id        = qsq.query_id
+WHERE TRY_CAST(qsqp.query_plan AS NVARCHAR(MAX)) LIKE '%PlanAffectingConvert%';
+```
+
+#### Recommended Fix
+
+```sql
+-- ❌ Anti-pattern: VARCHAR column passed a NVARCHAR literal or variable
+-- Column: customer_code VARCHAR(20)
+SELECT * FROM dbo.customers WHERE customer_code = N'CUST-001';
+-- N'' prefix forces NVARCHAR, triggering a full scan on the VARCHAR index
+
+-- ✅ Match the parameter type exactly
+SELECT * FROM dbo.customers WHERE customer_code = 'CUST-001';
+
+-- ❌ Anti-pattern: BIGINT column compared to INT parameter in sp_executesql
+EXEC sp_executesql
+    N'SELECT * FROM dbo.orders WHERE order_id = @id',
+    N'@id INT',        -- column is BIGINT, parameter is INT
+    @id = 1001;
+
+-- ✅ Use the correct type
+EXEC sp_executesql
+    N'SELECT * FROM dbo.orders WHERE order_id = @id',
+    N'@id BIGINT',
+    @id = 1001;
+```
+
+---
+
+### SQL Server Anti-Pattern: Heaps or Unstable Clustered Keys for OLTP Tables
+
+#### Problem
+
+A heap (table with no clustered index) stores rows in insertion order on pages without
+any logical sorting. Updates that increase row size produce **forwarded records** — a
+pointer chain that requires two page reads per row lookup. Under heavy write load, heap
+fragmentation also causes unnecessary I/O on range queries.
+
+An unstable clustered key (random GUID, changing business key) causes the same page-split
+and fragmentation pattern that random InnoDB primary keys cause in MySQL.
+
+#### Detection
+
+```sql
+-- Tables stored as heaps
+SELECT
+    OBJECT_SCHEMA_NAME(i.object_id)  AS schema_name,
+    OBJECT_NAME(i.object_id)         AS table_name,
+    SUM(p.rows)                      AS row_count
+FROM sys.indexes    AS i
+JOIN sys.partitions AS p
+  ON p.object_id = i.object_id AND p.index_id = i.index_id
+WHERE i.type = 0   -- HEAP
+  AND OBJECTPROPERTY(i.object_id, 'IsUserTable') = 1
+GROUP BY i.object_id
+ORDER BY row_count DESC;
+
+-- Forwarded record count on a specific heap
+SELECT
+    OBJECT_NAME(ios.object_id)   AS table_name,
+    ios.forwarded_fetch_count,
+    ios.page_count,
+    ios.avg_fragmentation_in_percent
+FROM sys.dm_db_index_physical_stats(
+    DB_ID(), OBJECT_ID('dbo.heap_table'), NULL, NULL, 'DETAILED') AS ios
+WHERE ios.index_id = 0;  -- 0 = heap
+```
+
+#### Recommended Fix
+
+```sql
+-- ❌ Anti-pattern: table with no clustered index (heap)
+CREATE TABLE dbo.events_heap (
+    event_id   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    event_type NVARCHAR(50)     NOT NULL,
+    occurred_at DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME()
+);
+
+-- ✅ Better: IDENTITY clustered key (sequential, narrow)
+CREATE TABLE dbo.events_good (
+    event_id    BIGINT          NOT NULL IDENTITY(1,1),
+    event_guid  UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),  -- preserve external identifier
+    event_type  NVARCHAR(50)    NOT NULL,
+    occurred_at DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_events PRIMARY KEY CLUSTERED (event_id)
+);
+
+-- ✅ If a GUID external key is required, use NEWSEQUENTIALID() to make it monotonic
+CREATE TABLE dbo.events_sequential_guid (
+    event_id   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID(),
+    event_type NVARCHAR(50)     NOT NULL,
+    occurred_at DATETIME2       NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_events_sg PRIMARY KEY CLUSTERED (event_id)
+);
+```
+
+---
+
+### SQL Server Anti-Pattern: Dynamic SQL via `EXEC()` and String Concatenation
+
+#### Problem
+
+Building SQL by concatenating strings and executing with `EXEC()` opens three problems:
+
+1. **SQL injection** — user-controlled input is embedded directly in executable SQL
+2. **No plan reuse** — each unique string gets its own plan, filling the procedure cache
+3. **Unreliable quoting** — escaping rules vary by data type; mistakes produce silent bugs
+
+#### Detection
+
+```sql
+-- Find EXEC( patterns in stored procedures and functions
+SELECT
+    OBJECT_SCHEMA_NAME(m.object_id) + '.' + OBJECT_NAME(m.object_id) AS object_name,
+    o.type_desc
+FROM sys.sql_modules AS m
+JOIN sys.objects     AS o ON o.object_id = m.object_id
+WHERE m.definition LIKE '%EXEC(%'
+   OR m.definition LIKE '%EXECUTE (%'
+ORDER BY o.type_desc, object_name;
+```
+
+#### Recommended Fix
+
+```sql
+-- ❌ Anti-pattern: string concatenation + EXEC()
+DECLARE @sql  NVARCHAR(500);
+DECLARE @id   INT = 42;
+
+SET @sql = 'SELECT * FROM dbo.orders WHERE customer_id = ' + CAST(@id AS NVARCHAR);
+EXEC (@sql);   -- New plan compiled every time; injection risk if @id came from user input
+
+-- ✅ Correct: sp_executesql with a typed parameter declaration
+DECLARE @id INT = 42;
+
+EXEC sp_executesql
+    N'SELECT * FROM dbo.orders WHERE customer_id = @customer_id',
+    N'@customer_id INT',
+    @customer_id = @id;
+-- One compiled plan, parameterized, reused on subsequent calls.
+
+-- ✅ For dynamic table/column names (cannot be parameterized), validate against a whitelist
+DECLARE @table_name SYSNAME = N'orders';
+DECLARE @sql        NVARCHAR(MAX);
+
+IF @table_name NOT IN (
+    SELECT name FROM sys.objects WHERE type = 'U')
+BEGIN
+    RAISERROR('Invalid table name', 16, 1);
+    RETURN;
+END
+
+SET @sql = N'SELECT TOP 100 * FROM ' + QUOTENAME(@table_name);
+EXEC sys.sp_executesql @sql;
+-- QUOTENAME only protects identifiers such as table or column names.
+-- Values still belong in typed parameters, not concatenated into @sql.
+```
+
+---
+
+### SQL Server Anti-Pattern: Relying on Autogrowth as a Capacity Plan
+
+#### Problem
+
+SQL Server expands data and log files automatically when they run out of space. Each
+autogrowth event requires acquiring an exclusive lock on the file while it extends, which
+can stall queries for hundreds of milliseconds to several seconds during peak traffic.
+Using the default 1 MB growth increment on a 100 GB log file means thousands of growth
+events — each one a spike.
+
+#### Detection
+
+```sql
+-- Autogrowth events recorded in the default trace
+SELECT
+    DatabaseName,
+    TextData     AS file_name,
+    EventClass,
+    StartTime,
+    DATEDIFF(ms, StartTime, EndTime)   AS growth_duration_ms,
+    IntegerData * 8 / 1024             AS growth_mb
+FROM fn_trace_gettable(
+    (SELECT SUBSTRING(path, 1, LEN(path) - CHARINDEX('\', REVERSE(path)))
+     FROM   sys.traces WHERE is_default = 1) + '\log.trc', DEFAULT)
+WHERE EventClass IN (92, 93)   -- 92 = Log Auto Grow, 93 = Data Auto Grow
+ORDER BY StartTime DESC;
+
+-- Current file sizes and free space
+SELECT
+    DB_NAME(database_id)                        AS db_name,
+    name                                        AS file_name,
+    type_desc,
+    size * 8 / 1024                             AS size_mb,
+    CAST(FILEPROPERTY(name, 'SpaceUsed') AS INT) * 8 / 1024 AS used_mb,
+    (size - CAST(FILEPROPERTY(name, 'SpaceUsed') AS INT)) * 8 / 1024 AS free_mb,
+    growth * 8 / 1024                           AS growth_increment_mb,
+    CASE is_percent_growth WHEN 1 THEN 'percent' ELSE 'mb' END AS growth_type
+FROM   sys.master_files
+WHERE  database_id = DB_ID('appdb')
+ORDER BY type_desc, name;
+```
+
+On Azure SQL Database, use Azure Monitor metrics, `sys.dm_db_resource_stats`, Extended Events,
+and Intelligent Insights instead of the default trace, which is not exposed the same way as on
+boxed SQL Server.
+
+#### Recommended Fix
+
+```sql
+-- Pre-size the data and log files to match expected workload + 25% headroom
+-- Use a single large initial size rather than letting autogrowth handle it
+
+-- Data file: grow to 10 GB immediately, expand in 512 MB steps if needed
+ALTER DATABASE appdb
+  MODIFY FILE (
+    NAME      = 'appdb_data',
+    SIZE      = 10240MB,
+    FILEGROWTH = 512MB
+  );
+
+-- Log file: size to hold at least 30 minutes of peak transaction volume
+ALTER DATABASE appdb
+  MODIFY FILE (
+    NAME      = 'appdb_log',
+    SIZE      = 2048MB,
+    FILEGROWTH = 256MB
+  );
+
+-- tempdb: each file should be the same size, and pre-sized to avoid growth during load
+-- Add one file per logical CPU core (up to 8)
+ALTER DATABASE tempdb
+  MODIFY FILE (NAME = 'tempdev', SIZE = 4096MB, FILEGROWTH = 512MB);
+```
+
+---
+
+### Quick Detection Queries Summary
+
+```sql
+-- MySQL: all non-InnoDB tables
+SELECT table_schema, table_name, engine
+FROM   information_schema.tables
+WHERE  table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+  AND  engine <> 'InnoDB';
+
+-- MySQL: tables not on utf8mb4
+SELECT table_schema, table_name, table_collation
+FROM   information_schema.tables
+WHERE  table_collation NOT LIKE 'utf8mb4%'
+  AND  table_schema NOT IN ('information_schema','mysql','performance_schema','sys');
+
+-- MySQL: char(36) primary keys (likely random UUIDs)
+SELECT table_schema, table_name, column_name, data_type, character_maximum_length
+FROM   information_schema.columns
+WHERE  column_key = 'PRI'
+  AND  (data_type = 'char' AND character_maximum_length = 36)
+  AND  table_schema NOT IN ('information_schema','mysql','performance_schema','sys');
+
+-- SQL Server: objects containing NOLOCK
+SELECT OBJECT_SCHEMA_NAME(m.object_id) + '.' + OBJECT_NAME(m.object_id) AS obj
+FROM   sys.sql_modules AS m
+WHERE  m.definition LIKE '%NOLOCK%';
+
+-- SQL Server: heaps with significant row counts
+SELECT OBJECT_SCHEMA_NAME(i.object_id) AS schema_name,
+       OBJECT_NAME(i.object_id) AS table_name,
+       SUM(p.rows) AS rows
+FROM sys.indexes i JOIN sys.partitions p
+  ON p.object_id = i.object_id AND p.index_id = i.index_id
+WHERE i.type = 0 AND OBJECTPROPERTY(i.object_id,'IsUserTable') = 1
+GROUP BY i.object_id HAVING SUM(p.rows) > 10000
+ORDER BY rows DESC;
+
+-- SQL Server: objects with EXEC( dynamic SQL
+SELECT OBJECT_SCHEMA_NAME(m.object_id) + '.' + OBJECT_NAME(m.object_id) AS obj
+FROM   sys.sql_modules AS m
+WHERE  m.definition LIKE '%EXEC(%';
+```
+
+---
+
 ## Quick Reference Checklist
 
 Use this checklist before releasing a new service or during quarterly audits.
@@ -1498,7 +2099,8 @@ Use this checklist before releasing a new service or during quarterly audits.
 - [ ] Every foreign key column has an index
 - [ ] Critical queries have been verified with `EXPLAIN ANALYZE`
 - [ ] No N+1 query patterns — ORM eager loading is used for list endpoints
-- [ ] Every `SELECT` has a `LIMIT` clause
+- [ ] Every `SELECT` has a `LIMIT`, `TOP`, or other explicit row-boundary strategy
+- [ ] MySQL primary keys and SQL Server clustered indexes are chosen intentionally for hot tables
 - [ ] Deep pagination uses keyset/cursor, not OFFSET
 - [ ] Database query count per request is monitored (threshold: < 10)
 
@@ -1506,7 +2108,8 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 - [ ] All multi-statement writes are wrapped in transactions
 - [ ] Auto-commit is disabled or explicitly managed
-- [ ] Financial operations use `SELECT ... FOR UPDATE` where needed
+- [ ] Financial operations use `SELECT ... FOR UPDATE` / locking reads where needed
+- [ ] SQL Server correctness-sensitive queries do not depend on `NOLOCK`
 
 ### Operations
 
@@ -1514,6 +2117,7 @@ Use this checklist before releasing a new service or during quarterly audits.
 - [ ] Pool size is tuned for the workload
 - [ ] Replication lag is monitored and alerted on (> 1s threshold)
 - [ ] Write-then-read paths route reads to primary or wait for replication
+- [ ] MySQL uses InnoDB + `utf8mb4`, and SQL Server `tempdb` / log growth are monitored
 
 ### Schema Management
 
@@ -1545,4 +2149,7 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.3 | 2026 | Corrected metadata-lock troubleshooting, tightened dynamic-SQL guidance, and added Azure SQL caveats |
+| 1.2 | 2026 | Added detection SQL and fix examples for every MySQL and SQL Server anti-pattern |
+| 1.1 | 2026 | Added MySQL and SQL Server engine-specific anti-pattern guidance |
 | 1.0 | 2025 | Initial database anti-patterns documentation |
