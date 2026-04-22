@@ -1970,7 +1970,7 @@ SELECT
     DATEDIFF(ms, StartTime, EndTime)   AS growth_duration_ms,
     IntegerData * 8 / 1024             AS growth_mb
 FROM fn_trace_gettable(
-    (SELECT SUBSTRING(path, 1, LEN(path) - CHARINDEX('', REVERSE(path)))
+    (SELECT SUBSTRING(path, 1, LEN(path) - CHARINDEX('\', REVERSE(path)))
      FROM   sys.traces WHERE is_default = 1) + '\log.trc', DEFAULT)
 WHERE EventClass IN (92, 93)   -- 92 = Log Auto Grow, 93 = Data Auto Grow
 ORDER BY StartTime DESC;
