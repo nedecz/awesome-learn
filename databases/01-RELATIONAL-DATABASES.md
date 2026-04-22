@@ -274,7 +274,7 @@ A good SQL script is predictable for the operator, safe for the database, and re
 
 | Concern | PostgreSQL | MySQL | SQL Server |
 |---|---|---|---|
-| **Batch separator** | Standard `;` terminator | Standard `;`; `DELIMITER` only in client tools for routines | `GO` is a client-tool batch separator, not T-SQL syntax inside application queries |
+| **Batch separator** | Standard `;` terminator | Standard `;`; `DELIMITER` only in client tools for routines | `GO` is a client-tool batch separator, not T-SQL syntax inside application queries, but deployment tools and SSMS/sqlcmd scripts still rely on it after some module definitions and context changes |
 | **DDL transactions** | Most DDL is transactional | Many DDL statements cause implicit commit | Many DDL statements can participate in a transaction, but some operations and tooling batches have restrictions |
 | **Online schema change** | Often metadata-only or low-lock, but verify | Use `ALGORITHM=INSTANT/INPLACE` and `LOCK=NONE` when supported | Prefer online/rebuild options supported by the edition and operation |
 | **Parameterized execution** | Prepared statements / bind variables | Prepared statements / bind variables | Prefer `sp_executesql` with typed parameters |
@@ -382,9 +382,16 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- Idempotent row upsert
+-- MySQL 8.0.20+ preferred syntax:
 INSERT INTO config (config_key, config_value)
 VALUES ('feature_x', 'enabled')
-ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
+AS new
+ON DUPLICATE KEY UPDATE config_value = new.config_value;
+
+-- MySQL 5.7 / early 8.0 equivalent:
+-- INSERT INTO config (config_key, config_value)
+-- VALUES ('feature_x', 'enabled')
+-- ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
 ```
 
 #### SQL Server

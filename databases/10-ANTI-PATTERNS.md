@@ -1487,6 +1487,9 @@ Phase 3: CONTRACT — remove old column (after all app instances updated)
 
 Engine choice does not replace fundamentals, but it does change which mistakes are most expensive. The following anti-patterns show up repeatedly in production incidents on MySQL and SQL Server systems.
 
+For a consolidated copy-paste runbook of related detection queries, see
+[13-QUERY-REFERENCE.md](13-QUERY-REFERENCE.md).
+
 ---
 
 ### MySQL Anti-Pattern: Using MyISAM for Transactional Workloads
@@ -1704,8 +1707,9 @@ WHERE ml.OBJECT_SCHEMA = DATABASE()
   AND ml.OBJECT_NAME   = 'orders';
 ```
 
-`information_schema.innodb_lock_waits` only shows row-lock waits; metadata locking problems around
-`ALTER TABLE` are easier to diagnose from `performance_schema.metadata_locks`.
+`information_schema.innodb_lock_waits` only showed row-lock waits, was deprecated in MySQL 5.7,
+and was removed in MySQL 8.0. For modern MySQL, use `performance_schema.metadata_locks` for DDL
+blocking and `performance_schema.data_locks` / `data_lock_waits` for row-lock analysis.
 
 #### Recommended Fix
 
@@ -1999,8 +2003,9 @@ WHERE  database_id = DB_ID('appdb')
 ORDER BY type_desc, name;
 ```
 
-On Azure SQL Database, use Azure Monitor / Intelligent Insights instead of the default trace,
-which is not exposed the same way as on boxed SQL Server.
+On Azure SQL Database, use Azure Monitor metrics, `sys.dm_db_resource_stats`, Extended Events,
+and Intelligent Insights instead of the default trace, which is not exposed the same way as on
+boxed SQL Server.
 
 #### Recommended Fix
 

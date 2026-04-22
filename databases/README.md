@@ -19,6 +19,7 @@ A comprehensive guide to database fundamentals, data modeling, storage engines, 
 | [10-ANTI-PATTERNS](10-ANTI-PATTERNS.md) | Common database mistakes plus MySQL and SQL Server anti-patterns | **Essential — what NOT to do** |
 | [11-SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | Reusable schema patterns for SQL and NoSQL databases | When applying proven patterns to production schemas |
 | [12-SCHEMA-DESIGN-PRINCIPLES](12-SCHEMA-DESIGN-PRINCIPLES.md) | Foundational principles for naming, keys, types, constraints, and evolution | When making any schema design decision |
+| [13-QUERY-REFERENCE](13-QUERY-REFERENCE.md) | Copy-paste operational and troubleshooting queries for PostgreSQL, MySQL, and SQL Server | When diagnosing production issues fast |
 | [LEARNING-PATH](LEARNING-PATH.md) | Structured 10–12 week training guide with exercises | **Start here** after the Overview |
 | [README](README.md) | This index file | Start here for navigation |
 
@@ -55,11 +56,15 @@ A comprehensive guide to database fundamentals, data modeling, storage engines, 
    - Core database mistakes plus MySQL and SQL Server engine-specific failures
    - Quick reference checklist for pre-production reviews
 
-3. **Scale Your Data Layer** ([05-REPLICATION-AND-SHARDING](05-REPLICATION-AND-SHARDING.md))
+3. **Keep a Query Runbook Handy** ([13-QUERY-REFERENCE](13-QUERY-REFERENCE.md))
+   - Copy-paste monitoring and troubleshooting queries by engine
+   - Fast path for checking locks, replication lag, wait stats, and storage signals
+
+4. **Scale Your Data Layer** ([05-REPLICATION-AND-SHARDING](05-REPLICATION-AND-SHARDING.md))
    - Replication topologies and consistency trade-offs
    - Partitioning strategies and rebalancing
 
-4. **Optimize Performance** ([04-QUERY-OPTIMIZATION](04-QUERY-OPTIMIZATION.md))
+5. **Optimize Performance** ([04-QUERY-OPTIMIZATION](04-QUERY-OPTIMIZATION.md))
    - Reading execution plans
    - Index design for complex queries
 
@@ -164,6 +169,7 @@ Serializable     → Full isolation, as if transactions execute sequentially
 - **Anti-Patterns** — 12 core database mistakes plus MySQL and SQL Server engine-specific anti-patterns
 - **Schema Design Patterns** — Multi-tenancy, event sourcing, bucket, single-table design, CQRS, and more
 - **Schema Design Principles** — Naming conventions, primary key design, data types, constraints, normalization, index alignment, temporal data, schema evolution
+- **Query Reference** — Ready-to-run PostgreSQL, MySQL, and SQL Server queries for diagnostics, health checks, and troubleshooting
 
 ## 🤝 Contributing
 
@@ -175,6 +181,6 @@ This is a living collection of learning resources. Contributions are welcome —
 
 **Already experienced with SQL?** → Jump to [02-NOSQL-DATABASES.md](02-NOSQL-DATABASES.md) or [05-REPLICATION-AND-SHARDING.md](05-REPLICATION-AND-SHARDING.md)
 
-**Going to production?** → Review [09-BEST-PRACTICES.md](09-BEST-PRACTICES.md) and [10-ANTI-PATTERNS.md](10-ANTI-PATTERNS.md)
+**Going to production?** → Review [09-BEST-PRACTICES.md](09-BEST-PRACTICES.md), [10-ANTI-PATTERNS.md](10-ANTI-PATTERNS.md), and keep [13-QUERY-REFERENCE.md](13-QUERY-REFERENCE.md) nearby
 
 **Want a structured path?** → Follow the [LEARNING-PATH.md](LEARNING-PATH.md) — 6 phases, 10–12 weeks

@@ -1061,6 +1061,7 @@ SHOW clients;
 |-------|----------|-------------|
 | 1 | [09-BEST-PRACTICES](09-BEST-PRACTICES.md) | Production patterns, backup strategy, monitoring, security, MySQL and SQL Server guidance |
 | 2 | [10-ANTI-PATTERNS](10-ANTI-PATTERNS.md) | Common mistakes, N+1 queries, God tables, soft deletes, EAV pattern, engine-specific failures |
+| 3 | [13-QUERY-REFERENCE](13-QUERY-REFERENCE.md) | Copy-paste troubleshooting queries, lock inspection, replication status, wait stats, log growth |
 
 ### Exercises
 
@@ -1190,6 +1191,7 @@ Evaluation Criteria:
 | 10 | [ANTI-PATTERNS](10-ANTI-PATTERNS.md) | 6 | God tables, N+1 queries, EAV, OFFSET pagination, MySQL and SQL Server anti-patterns |
 | 11 | [SCHEMA-DESIGN-PATTERNS](11-SCHEMA-DESIGN-PATTERNS.md) | 3 | Multi-tenancy, event sourcing, bucket, single-table design, CQRS |
 | 12 | [SCHEMA-DESIGN-PRINCIPLES](12-SCHEMA-DESIGN-PRINCIPLES.md) | 2, 6 | Naming, keys, types, constraints, normalization, index alignment, evolution |
+| 13 | [QUERY-REFERENCE](13-QUERY-REFERENCE.md) | 4, 6 | PostgreSQL, MySQL, and SQL Server operational and troubleshooting queries |
 | — | [LEARNING-PATH](LEARNING-PATH.md) | All | This document — structured 6-phase curriculum |
 
 ---
@@ -1237,16 +1239,16 @@ Evaluation Criteria:
 
 ```
 Backend Developer:
-  00-OVERVIEW → 01-RELATIONAL → 03-DATA-MODELING → 11-SCHEMA-PATTERNS → 04-QUERY-OPT → 07-CACHING → 09-BEST-PRACTICES
+  00-OVERVIEW → 01-RELATIONAL → 03-DATA-MODELING → 11-SCHEMA-PATTERNS → 04-QUERY-OPT → 07-CACHING → 09-BEST-PRACTICES → 13-QUERY-REFERENCE
 
 Data Engineer:
   00-OVERVIEW → 01-RELATIONAL → 02-NOSQL → 11-SCHEMA-PATTERNS → 05-REPLICATION → 06-MIGRATIONS → 04-QUERY-OPT
 
 DevOps / SRE:
-  00-OVERVIEW → 05-REPLICATION → 08-CONNECTION-MGMT → 06-MIGRATIONS → 07-CACHING → 09-BEST-PRACTICES
+  00-OVERVIEW → 05-REPLICATION → 08-CONNECTION-MGMT → 06-MIGRATIONS → 07-CACHING → 09-BEST-PRACTICES → 13-QUERY-REFERENCE
 
 Architect:
-  00-OVERVIEW → All files → 11-SCHEMA-PATTERNS → 09-BEST-PRACTICES → 10-ANTI-PATTERNS
+  00-OVERVIEW → All files → 11-SCHEMA-PATTERNS → 09-BEST-PRACTICES → 10-ANTI-PATTERNS → 13-QUERY-REFERENCE
 ```
 
 ---
@@ -1255,4 +1257,5 @@ Architect:
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 1.1 | 2026 | Added 13-QUERY-REFERENCE subtopic to Phase 6, document map, and role-based paths |
 | 1.0 | 2025 | Initial database learning path |

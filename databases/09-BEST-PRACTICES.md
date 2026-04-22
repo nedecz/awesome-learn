@@ -1210,6 +1210,9 @@ psql -d staging_mydb -c "
 
 Generic database advice gets you only part of the way. Production excellence also requires respecting the operational quirks of the engine you actually run.
 
+For a consolidated copy-paste runbook of the diagnostic queries in this section, see
+[13-QUERY-REFERENCE.md](13-QUERY-REFERENCE.md).
+
 ### MySQL Best Practices
 
 | Practice | Why It Matters |
@@ -1450,8 +1453,9 @@ WHERE EventClass = 93   -- Data File Auto Grow
 ORDER BY StartTime DESC;
 ```
 
-On Azure SQL Database, the default trace is not available; use Azure Monitor metrics, Intelligent
-Insights, or Extended Events instead of `fn_trace_gettable`.
+On Azure SQL Database, the default trace is not available; use Azure Monitor metrics,
+`sys.dm_db_resource_stats`, Extended Events, and Intelligent Insights instead of
+`fn_trace_gettable`.
 
 ### Cross-Engine Review Checklist
 
