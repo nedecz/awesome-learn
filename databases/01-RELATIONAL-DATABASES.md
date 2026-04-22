@@ -316,6 +316,239 @@ Why this script is good:
 - **The validation query proves completion.** You should not rely on the absence of errors as proof that the script did the right thing.
 - **The script is easy to adapt per engine.** In MySQL, validate whether the `ALTER TABLE` can use `ALGORITHM=INSTANT` or `LOCK=NONE`; in SQL Server, consider `SET XACT_ABORT ON` and batch large updates to protect the log and lock manager.
 
+### Idempotency Patterns by Engine
+
+Writing idempotent SQL varies across engines. Here are the most reliable patterns for the three most common scenarios: adding a column, creating an index, and upserting a row.
+
+#### PostgreSQL
+
+```sql
+-- Idempotent column addition (PostgreSQL 9.6+)
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;
+
+-- Idempotent index creation
+CREATE INDEX IF NOT EXISTS idx_orders_archived_at ON orders(archived_at)
+  WHERE archived_at IS NOT NULL;
+
+-- Idempotent row upsert: insert or update on conflict
+INSERT INTO config (config_key, config_value)
+VALUES ('feature_x', 'enabled')
+ON CONFLICT (config_key)
+DO UPDATE SET config_value = EXCLUDED.config_value,
+              updated_at   = now();
+```
+
+#### MySQL
+
+MySQL 8.0+ supports `IF EXISTS` / `IF NOT EXISTS` in `ALTER TABLE`, but for older versions
+you must guard using `information_schema`.
+
+```sql
+-- Check whether column exists before adding (works on all MySQL versions)
+SET @col_exists = (
+  SELECT COUNT(*) FROM information_schema.columns
+  WHERE table_schema = DATABASE()
+    AND table_name   = 'orders'
+    AND column_name  = 'archived_at'
+);
+
+-- Execute ALTER only when the column is absent
+-- (wrap in a stored procedure or handle in application/migration tool)
+-- ALTER TABLE orders ADD COLUMN archived_at TIMESTAMP NULL, ALGORITHM=INSTANT;
+
+-- Idempotent row upsert
+INSERT INTO config (config_key, config_value)
+VALUES ('feature_x', 'enabled')
+ON DUPLICATE KEY UPDATE config_value = VALUES(config_value);
+```
+
+#### SQL Server
+
+SQL Server provides `IF NOT EXISTS` guards via catalog views. Use `GO` to separate batches
+inside `sqlcmd` / SSMS scripts.
+
+```sql
+-- Idempotent column addition
+IF NOT EXISTS (
+  SELECT 1 FROM sys.columns
+  WHERE object_id = OBJECT_ID('dbo.orders')
+    AND name = 'archived_at')
+  ALTER TABLE dbo.orders ADD archived_at DATETIME2 NULL;
+GO
+
+-- Idempotent index creation
+IF NOT EXISTS (
+  SELECT 1 FROM sys.indexes
+  WHERE object_id = OBJECT_ID('dbo.orders')
+    AND name = 'IX_orders_archived_at')
+  CREATE NONCLUSTERED INDEX IX_orders_archived_at
+    ON dbo.orders (archived_at)
+    WHERE archived_at IS NOT NULL;
+GO
+
+-- Idempotent row upsert (MERGE)
+MERGE INTO dbo.config AS target
+USING (VALUES ('feature_x', 'enabled')) AS src (config_key, config_value)
+ON target.config_key = src.config_key
+WHEN MATCHED     THEN UPDATE SET config_value = src.config_value
+WHEN NOT MATCHED THEN INSERT (config_key, config_value)
+                      VALUES (src.config_key, src.config_value);
+```
+
+### Batching Large Writes
+
+Updating or deleting millions of rows in a single statement locks too many rows, bloats the
+transaction log, and blocks concurrent traffic. Use small, restart-safe batches instead.
+
+#### MySQL — loop with LIMIT
+
+```sql
+-- Archive 1 000 rows per iteration; safe to stop and restart
+archive_loop: LOOP
+  UPDATE orders
+  SET    archived_at = updated_at
+  WHERE  status IN ('completed', 'cancelled')
+    AND  archived_at IS NULL
+  LIMIT  1000;
+
+  -- Exit when nothing is left to update
+  IF ROW_COUNT() = 0 THEN
+    LEAVE archive_loop;
+  END IF;
+
+  -- Brief pause so replicas can catch up before the next batch
+  DO SLEEP(0.1);
+END LOOP archive_loop;
+```
+
+#### PostgreSQL — CTE with LIMIT
+
+```sql
+-- Batch via writable CTE; repeat until 0 rows are returned
+WITH batch AS (
+  SELECT id FROM orders
+  WHERE  status IN ('completed', 'cancelled')
+    AND  archived_at IS NULL
+  LIMIT  1000
+  FOR UPDATE SKIP LOCKED
+)
+UPDATE orders
+SET    archived_at = updated_at
+WHERE  id IN (SELECT id FROM batch);
+
+-- Run in a loop from the application or a DO block until no rows are updated.
+-- The FOR UPDATE SKIP LOCKED avoids blocking other concurrent batch workers.
+```
+
+#### SQL Server — TOP with WHILE loop
+
+```sql
+SET XACT_ABORT ON;
+
+DECLARE @batch_size INT = 1000;
+DECLARE @rows_updated INT = 1;
+
+WHILE @rows_updated > 0
+BEGIN
+  BEGIN TRANSACTION;
+
+  UPDATE TOP (@batch_size) dbo.orders
+  SET    archived_at = updated_at
+  WHERE  status IN ('completed', 'cancelled')
+    AND  archived_at IS NULL;
+
+  SET @rows_updated = @@ROWCOUNT;
+  COMMIT TRANSACTION;
+
+  -- Brief pause between batches to reduce log pressure
+  WAITFOR DELAY '00:00:00.100';
+END
+```
+
+### Transaction Control by Engine
+
+Each engine handles DDL inside transactions differently. Knowing this before writing a
+deployment script prevents silent partial changes.
+
+#### PostgreSQL — DDL is transactional
+
+```sql
+-- PostgreSQL DDL participates in transactions; schema changes roll back on error.
+BEGIN;
+
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS priority SMALLINT NOT NULL DEFAULT 0;
+
+UPDATE orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate inside the transaction before committing
+DO $$
+BEGIN
+  IF (SELECT COUNT(*) FROM orders
+      WHERE customer_tier = 'gold' AND priority <> 1) > 0
+  THEN
+    RAISE EXCEPTION 'priority backfill validation failed — rolling back';
+  END IF;
+END;
+$$;
+
+COMMIT;
+```
+
+#### MySQL — DDL causes an implicit commit
+
+```sql
+-- Step 1: schema change. MySQL auto-commits this regardless of any wrapping transaction.
+ALTER TABLE orders
+  ADD COLUMN priority TINYINT NOT NULL DEFAULT 0,
+  ALGORITHM = INSTANT;   -- fastest path; falls back to INPLACE if INSTANT is unavailable
+
+-- Step 2: data change in an explicit transaction.
+START TRANSACTION;
+
+UPDATE orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate before committing
+SELECT COUNT(*) AS should_be_zero
+FROM   orders
+WHERE  customer_tier = 'gold'
+  AND  priority <> 1;
+-- If result = 0, the backfill is correct.
+
+COMMIT;
+```
+
+#### SQL Server — DDL inside a transaction with XACT_ABORT
+
+```sql
+SET XACT_ABORT ON;   -- any runtime error triggers automatic rollback
+
+BEGIN TRANSACTION;
+
+-- Schema change participates in the transaction
+ALTER TABLE dbo.orders ADD priority TINYINT NOT NULL DEFAULT 0;
+
+-- Data backfill
+UPDATE dbo.orders
+SET    priority = 1
+WHERE  customer_tier = 'gold';
+
+-- Validate before committing
+IF (SELECT COUNT(*)
+    FROM   dbo.orders
+    WHERE  customer_tier = 'gold' AND priority <> 1) > 0
+BEGIN
+  ROLLBACK TRANSACTION;
+  RAISERROR('priority backfill validation failed', 16, 1);
+  RETURN;
+END
+
+COMMIT TRANSACTION;
+```
+
 ### SQL Script Review Checklist
 
 Before running a script in staging or production, verify that all of the following are true:
@@ -1022,14 +1255,152 @@ SQL Server defaults to **Read Committed**. In many mixed read/write systems, ena
 - **Prefer `sp_executesql` over `EXEC()`** for dynamic SQL to get plan reuse and protection from SQL injection.
 - **Use `SET XACT_ABORT ON`** in deployment and data-fix scripts so runtime errors abort the entire transaction instead of leaving partial changes behind.
 
+### T-SQL Examples
+
+**Defining a table with an explicit clustered key and a covering nonclustered index:**
+
 ```sql
-ALTER DATABASE appdb SET QUERY_STORE = ON;
+-- Clustered by IDENTITY key for sequential inserts; nonclustered for customer lookups
+CREATE TABLE dbo.orders (
+    order_id    BIGINT        NOT NULL IDENTITY(1,1),
+    customer_id BIGINT        NOT NULL,
+    status      NVARCHAR(20)  NOT NULL DEFAULT N'pending',
+    total_cents BIGINT        NOT NULL,
+    created_at  DATETIME2     NOT NULL DEFAULT SYSUTCDATETIME(),
+    CONSTRAINT PK_orders PRIMARY KEY CLUSTERED (order_id)
+);
+
+-- Covering nonclustered: avoids a key lookup for the common customer-order query
+CREATE NONCLUSTERED INDEX IX_orders_customer_status
+  ON dbo.orders (customer_id, status)
+  INCLUDE (total_cents, created_at);
+
+-- Filtered nonclustered: smaller and faster for the subset that matters
+CREATE NONCLUSTERED INDEX IX_orders_pending
+  ON dbo.orders (created_at)
+  WHERE status = N'pending';
+```
+
+**Explicit transaction with structured error handling:**
+
+```sql
+SET XACT_ABORT ON;
+
+BEGIN TRY
+  BEGIN TRANSACTION;
+
+  -- Debit sender
+  UPDATE dbo.accounts
+  SET    balance = balance - 100
+  WHERE  account_id = 1;
+
+  -- Credit recipient
+  UPDATE dbo.accounts
+  SET    balance = balance + 100
+  WHERE  account_id = 2;
+
+  COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+  IF @@TRANCOUNT > 0
+    ROLLBACK TRANSACTION;
+
+  -- Re-raise the original error to the caller
+  THROW;
+END CATCH;
+```
+
+**Enabling Query Store and RCSI:**
+
+```sql
+-- Enable Query Store (persists execution plan history across restarts)
+ALTER DATABASE appdb
+  SET QUERY_STORE = ON
+  WITH (
+    OPERATION_MODE        = READ_WRITE,
+    MAX_STORAGE_SIZE_MB   = 1024,
+    QUERY_CAPTURE_MODE    = AUTO
+  );
+
+-- Enable RCSI (readers no longer block on writers; requires brief exclusive lock on the DB)
 ALTER DATABASE appdb SET READ_COMMITTED_SNAPSHOT ON;
 
+-- Verify the setting
+SELECT name, is_read_committed_snapshot_on
+FROM   sys.databases
+WHERE  name = DB_NAME();
+```
+
+**Parameterized dynamic SQL to get plan reuse:**
+
+```sql
+-- ❌ Anti-pattern: concatenated SQL gets a separate plan each time
+EXEC ('SELECT total_amount FROM sales.orders WHERE customer_id = ' + @id);
+
+-- ✅ Correct: sp_executesql with typed parameter — one plan is compiled and reused
 EXEC sp_executesql
     N'SELECT total_amount FROM sales.orders WHERE customer_id = @customer_id',
     N'@customer_id BIGINT',
     @customer_id = 42;
+```
+
+### SQL Server Monitoring Queries
+
+**Top queries by average CPU time (Query Store):**
+
+```sql
+SELECT TOP 20
+    OBJECT_NAME(qsq.object_id)           AS proc_name,
+    qsq.query_id,
+    qsrs.count_executions,
+    ROUND(qsrs.avg_cpu_time   / 1000.0, 2) AS avg_cpu_ms,
+    ROUND(qsrs.avg_duration   / 1000.0, 2) AS avg_duration_ms,
+    ROUND(qsrs.avg_logical_io_reads, 0)    AS avg_logical_reads,
+    LEFT(qsqt.query_sql_text, 200)         AS query_text
+FROM sys.query_store_runtime_stats   AS qsrs
+JOIN sys.query_store_plan            AS qsqp ON qsqp.plan_id        = qsrs.plan_id
+JOIN sys.query_store_query           AS qsq  ON qsq.query_id        = qsqp.query_id
+JOIN sys.query_store_query_text      AS qsqt ON qsqt.query_text_id  = qsq.query_text_id
+ORDER BY qsrs.avg_cpu_time DESC;
+```
+
+**Wait statistics — find the root cause of latency:**
+
+```sql
+SELECT TOP 20
+    wait_type,
+    waiting_tasks_count,
+    ROUND(wait_time_ms / 1000.0, 1)        AS wait_time_sec,
+    ROUND(signal_wait_time_ms / 1000.0, 1) AS cpu_queue_sec,
+    ROUND(
+        100.0 * wait_time_ms
+        / NULLIF(SUM(wait_time_ms) OVER (), 0), 2)  AS pct_of_total
+FROM sys.dm_os_wait_stats
+WHERE wait_type NOT IN (
+    'SLEEP_TASK','BROKER_TO_FLUSH','BROKER_EVENTHANDLER',
+    'REQUEST_FOR_DEADLOCK_SEARCH','CHECKPOINT_QUEUE',
+    'SQLTRACE_BUFFER_FLUSH','CLR_AUTO_EVENT',
+    'DISPATCHER_QUEUE_SEMAPHORE','XE_TIMER_EVENT',
+    'FT_IFTS_SCHEDULER_IDLE_WAIT','WAITFOR',
+    'LAZYWRITER_SLEEP','LOGMGR_QUEUE',
+    'ONDEMAND_TASK_QUEUE','XE_DISPATCHER_WAIT')
+ORDER BY wait_time_ms DESC;
+```
+
+**Find tables stored as heaps (no clustered index):**
+
+```sql
+SELECT
+    OBJECT_SCHEMA_NAME(i.object_id)  AS schema_name,
+    OBJECT_NAME(i.object_id)         AS table_name,
+    SUM(p.rows)                      AS row_count
+FROM sys.indexes    AS i
+JOIN sys.partitions AS p
+  ON p.object_id = i.object_id AND p.index_id = i.index_id
+WHERE i.type = 0   -- 0 = HEAP (no clustered index)
+  AND OBJECTPROPERTY(i.object_id, 'IsUserTable') = 1
+GROUP BY i.object_id
+ORDER BY row_count DESC;
 ```
 
 ---

@@ -1220,6 +1220,118 @@ Generic database advice gets you only part of the way. Production excellence als
 | **Make online DDL explicit.** | Declare `ALGORITHM=INSTANT` / `INPLACE` and `LOCK=NONE` when supported so a migration does not silently fall back to a blocking table copy. |
 | **Monitor InnoDB internals, not just CPU and disk.** | Buffer-pool hit ratio, history-list length, deadlocks, temp tables on disk, and replication lag tell you when concurrency or cleanup is falling behind. |
 
+#### Implementation Details
+
+**Audit charset and collation:**
+
+```sql
+-- Find tables that are not using utf8mb4
+SELECT table_schema, table_name, table_collation
+FROM   information_schema.tables
+WHERE  table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+  AND  table_collation NOT LIKE 'utf8mb4%'
+ORDER BY table_schema, table_name;
+
+-- Find columns with a different charset than the table default
+SELECT table_schema, table_name, column_name,
+       character_set_name, collation_name
+FROM   information_schema.columns
+WHERE  character_set_name IS NOT NULL
+  AND  character_set_name <> 'utf8mb4'
+  AND  table_schema NOT IN ('information_schema','mysql','performance_schema','sys')
+ORDER BY table_schema, table_name, column_name;
+
+-- Convert a table to utf8mb4 in a single online operation
+ALTER TABLE posts
+  CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  ALGORITHM = INPLACE, LOCK = NONE;
+```
+
+**Verify and enable GTID + row-based replication:**
+
+```sql
+-- Check current replication settings
+SHOW VARIABLES LIKE 'gtid_mode';
+SHOW VARIABLES LIKE 'binlog_format';
+SHOW VARIABLES LIKE 'enforce_gtid_consistency';
+
+-- Recommended settings in my.cnf (require a controlled restart to activate)
+-- [mysqld]
+-- gtid_mode              = ON
+-- enforce_gtid_consistency = ON
+-- binlog_format          = ROW
+-- binlog_row_image       = FULL     -- captures full before/after images
+
+-- Verify replica status after enabling GTID
+SHOW REPLICA STATUS\G
+-- Look for: Retrieved_Gtid_Set and Executed_Gtid_Set
+```
+
+**Online DDL — choose the right algorithm explicitly:**
+
+```sql
+-- Check what algorithm is available before committing to a maintenance window
+EXPLAIN ALTER TABLE orders
+  ADD COLUMN archived_at TIMESTAMP NULL,
+  ALGORITHM = INSTANT, LOCK = NONE;
+
+-- INSTANT: only metadata change, milliseconds, available MySQL 8.0+
+ALTER TABLE orders
+  ADD COLUMN archived_at TIMESTAMP NULL,
+  ALGORITHM = INSTANT;
+
+-- INPLACE with no lock: rebuilds in background, concurrent reads/writes
+ALTER TABLE orders
+  ADD INDEX idx_orders_status (status),
+  ALGORITHM = INPLACE, LOCK = NONE;
+
+-- If INSTANT and INPLACE are not available, use gh-ost for large tables
+-- gh-ost --host=primary --database=app --table=orders
+--        --alter="ADD COLUMN archived_at TIMESTAMP NULL"
+--        --execute
+```
+
+**Monitor InnoDB health — key queries:**
+
+```sql
+-- Buffer pool hit ratio: should stay above 99% in production
+SELECT
+  FORMAT(
+    100 - (100 * (Innodb_buffer_pool_reads / Innodb_buffer_pool_read_requests)), 4
+  ) AS buffer_pool_hit_pct
+FROM (
+  SELECT
+    VARIABLE_VALUE AS Innodb_buffer_pool_reads
+  FROM performance_schema.global_status
+  WHERE VARIABLE_NAME = 'Innodb_buffer_pool_reads'
+) r,
+(
+  SELECT
+    VARIABLE_VALUE AS Innodb_buffer_pool_read_requests
+  FROM performance_schema.global_status
+  WHERE VARIABLE_NAME = 'Innodb_buffer_pool_read_requests'
+) rr;
+
+-- InnoDB history list length: high values (> 10 000) indicate long-running transactions
+-- or replication applying lagging behind
+SELECT NAME, COUNT
+FROM   information_schema.INNODB_METRICS
+WHERE  NAME = 'trx_rseg_history_len';
+
+-- Active long-running transactions (potential lock holders)
+SELECT trx_id, trx_started,
+       TIMESTAMPDIFF(SECOND, trx_started, NOW()) AS seconds_active,
+       trx_query
+FROM   information_schema.innodb_trx
+ORDER BY trx_started ASC;
+
+-- Current deadlock information
+SHOW ENGINE INNODB STATUS;
+-- Look for the LATEST DETECTED DEADLOCK section
+```
+
+---
+
 ### SQL Server Best Practices
 
 | Practice | Why It Matters |
@@ -1230,12 +1342,116 @@ Generic database advice gets you only part of the way. Production excellence als
 | **Pre-size data files, transaction log files, and `tempdb`.** | Autogrowth during peak traffic introduces latency spikes and can become the real bottleneck. |
 | **Use schema-qualified, parameterized SQL.** | `dbo.orders` plus `sp_executesql` with typed parameters improves plan reuse, reduces implicit conversion bugs, and helps security. |
 
+#### Implementation Details
+
+**Enable and query Query Store:**
+
+```sql
+-- Enable Query Store with recommended production settings
+ALTER DATABASE appdb
+  SET QUERY_STORE = ON
+  WITH (
+    OPERATION_MODE      = READ_WRITE,
+    MAX_STORAGE_SIZE_MB = 1024,
+    QUERY_CAPTURE_MODE  = AUTO,     -- ignores trivially small queries
+    SIZE_BASED_CLEANUP_MODE = AUTO
+  );
+
+-- Find top 20 regressed queries (execution plan changed and got slower)
+SELECT TOP 20
+    qsq.query_id,
+    ROUND(qsrs.avg_cpu_time / 1000.0, 2)   AS avg_cpu_ms_recent,
+    ROUND(qsrs_old.avg_cpu_time / 1000.0, 2) AS avg_cpu_ms_before,
+    qsrs.count_executions,
+    LEFT(qsqt.query_sql_text, 200)          AS query_text
+FROM sys.query_store_runtime_stats      AS qsrs
+JOIN sys.query_store_plan               AS qsqp     ON qsqp.plan_id       = qsrs.plan_id
+JOIN sys.query_store_query              AS qsq       ON qsq.query_id       = qsqp.query_id
+JOIN sys.query_store_query_text         AS qsqt      ON qsqt.query_text_id = qsq.query_text_id
+LEFT JOIN sys.query_store_runtime_stats AS qsrs_old
+  ON qsrs_old.plan_id = qsqp.plan_id AND qsrs_old.runtime_stats_interval_id < qsrs.runtime_stats_interval_id
+WHERE qsrs.avg_cpu_time > qsrs_old.avg_cpu_time * 2   -- 2x slower than before
+ORDER BY (qsrs.avg_cpu_time - ISNULL(qsrs_old.avg_cpu_time, 0)) DESC;
+
+-- Force a good plan (use after identifying a regressed plan)
+EXEC sys.sp_query_store_force_plan @query_id = 42, @plan_id = 17;
+```
+
+**Monitor missing index recommendations:**
+
+```sql
+-- SQL Server tracks unresolved index requests; review before creating blindly
+SELECT TOP 20
+    ROUND(mig.avg_total_user_cost * mig.avg_user_impact * (mig.user_seeks + mig.user_scans), 0)
+                                            AS improvement_estimate,
+    mig.user_seeks, mig.user_scans,
+    mid.statement                           AS table_name,
+    mid.equality_columns,
+    mid.inequality_columns,
+    mid.included_columns
+FROM sys.dm_db_missing_index_group_stats    AS mig
+JOIN sys.dm_db_missing_index_groups         AS migs ON migs.index_group_handle = mig.group_handle
+JOIN sys.dm_db_missing_index_details        AS mid  ON mid.index_handle         = migs.index_handle
+ORDER BY improvement_estimate DESC;
+```
+
+**Check and enable RCSI:**
+
+```sql
+-- Check current isolation setting
+SELECT name,
+       is_read_committed_snapshot_on,
+       snapshot_isolation_state_desc
+FROM   sys.databases
+WHERE  name = DB_NAME();
+
+-- Enable RCSI (requires a brief exclusive DB lock; do during low-traffic window)
+ALTER DATABASE appdb SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+ALTER DATABASE appdb SET READ_COMMITTED_SNAPSHOT ON;
+ALTER DATABASE appdb SET MULTI_USER;
+
+-- Monitor version store growth in tempdb after enabling RCSI
+SELECT
+    SUM(version_store_reserved_page_count) * 8 / 1024 AS version_store_mb
+FROM sys.dm_db_file_space_usage;
+```
+
+**Pre-size and monitor the transaction log:**
+
+```sql
+-- View current log file size and usage
+SELECT
+    DB_NAME(database_id)           AS db_name,
+    name                           AS log_file,
+    size * 8 / 1024                AS current_size_mb,
+    FILEPROPERTY(name, 'SpaceUsed') * 8 / 1024  AS space_used_mb,
+    max_size
+FROM   sys.master_files
+WHERE  type_desc = 'LOG';
+
+-- Check for autogrowth events in the default trace (indicates undersized log)
+SELECT
+    TextData,
+    StartTime,
+    EndTime,
+    DATEDIFF(ms, StartTime, EndTime) AS growth_duration_ms,
+    IntegerData * 8 / 1024           AS growth_mb
+FROM fn_trace_gettable(
+    (SELECT SUBSTRING(path, 1, LEN(path) - CHARINDEX('', REVERSE(path)))
+     FROM   sys.traces WHERE is_default = 1) + '\log.trc', DEFAULT)
+WHERE EventClass = 93   -- Data File Auto Grow
+   OR EventClass = 92   -- Log File Auto Grow
+ORDER BY StartTime DESC;
+```
+
 ### Cross-Engine Review Checklist
 
 - **MySQL:** all transactional tables use InnoDB, default charset/collation is explicit, and replication mode is documented.
 - **MySQL:** large table changes have a proven online strategy (`ALGORITHM=...`, `gh-ost`, or `pt-online-schema-change`).
+- **MySQL:** buffer pool hit ratio is above 99% and history list length is below 10 000 in steady state.
 - **SQL Server:** Query Store is enabled, plan regressions are reviewed, and wait stats are part of incident response.
-- **SQL Server:** `tempdb` and transaction log growth are monitored, pre-sized, and reviewed after every major release.
+- **SQL Server:** `tempdb` and transaction log growth events are monitored, files are pre-sized, and autogrowth events alert the on-call engineer.
+- **SQL Server:** RCSI is evaluated for every OLTP database and its impact on `tempdb` is measured before enabling in production.
 - **Both engines:** application queries are parameterized and connection/session settings are controlled by the application or migration tool, not by hidden client defaults.
 
 ---
@@ -1564,5 +1780,6 @@ Use this checklist before launching a new database to production, or audit an ex
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.2 | 2026 | Added detailed implementation SQL for MySQL and SQL Server best practices |
 | 1.1 | 2026 | Added MySQL and SQL Server engine-specific production best practices |
 | 1.0 | 2025 | Initial best practices for production documentation |
