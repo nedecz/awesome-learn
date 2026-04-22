@@ -1395,6 +1395,12 @@ JOIN sys.dm_db_missing_index_details        AS mid  ON mid.index_handle         
 ORDER BY improvement_estimate DESC;
 ```
 
+Treat missing-index DMVs as hints, not instructions:
+
+- They reset after restart and do not understand your write budget.
+- They frequently suggest overlapping indexes that should be consolidated into one good composite index.
+- Always verify with the actual query plan and query-store metrics before adding another index.
+
 **Check and enable RCSI:**
 
 ```sql
@@ -1443,6 +1449,9 @@ WHERE EventClass = 93   -- Data File Auto Grow
    OR EventClass = 92   -- Log File Auto Grow
 ORDER BY StartTime DESC;
 ```
+
+On Azure SQL Database, the default trace is not available; use Azure Monitor metrics, Intelligent
+Insights, or Extended Events instead of `fn_trace_gettable`.
 
 ### Cross-Engine Review Checklist
 
@@ -1780,6 +1789,7 @@ Use this checklist before launching a new database to production, or audit an ex
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.3 | 2026 | Added operator guidance for SQL Server DMVs and Azure SQL monitoring caveats |
 | 1.2 | 2026 | Added detailed implementation SQL for MySQL and SQL Server best practices |
 | 1.1 | 2026 | Added MySQL and SQL Server engine-specific production best practices |
 | 1.0 | 2025 | Initial best practices for production documentation |

@@ -1691,14 +1691,21 @@ EXPLAIN ALTER TABLE orders
 
 -- While an ALTER is running, inspect metadata locks
 SELECT
-  r.trx_id              AS blocking_trx_id,
-  r.trx_mysql_thread_id AS blocking_thread,
-  r.trx_query           AS blocking_query,
-  b.trx_query           AS blocked_query
-FROM   information_schema.innodb_lock_waits w
-JOIN   information_schema.innodb_trx b ON b.trx_id = w.requesting_trx_id
-JOIN   information_schema.innodb_trx r ON r.trx_id = w.blocking_trx_id;
+  ml.OBJECT_SCHEMA,
+  ml.OBJECT_NAME,
+  ml.LOCK_TYPE,
+  ml.LOCK_STATUS,
+  t.PROCESSLIST_ID,
+  t.PROCESSLIST_INFO
+FROM performance_schema.metadata_locks AS ml
+JOIN performance_schema.threads        AS t
+  ON t.THREAD_ID = ml.OWNER_THREAD_ID
+WHERE ml.OBJECT_SCHEMA = DATABASE()
+  AND ml.OBJECT_NAME   = 'orders';
 ```
+
+`information_schema.innodb_lock_waits` only shows row-lock waits; metadata locking problems around
+`ALTER TABLE` are easier to diagnose from `performance_schema.metadata_locks`.
 
 #### Recommended Fix
 
@@ -1933,6 +1940,7 @@ EXEC sp_executesql
 
 -- ✅ For dynamic table/column names (cannot be parameterized), validate against a whitelist
 DECLARE @table_name SYSNAME = N'orders';
+DECLARE @sql        NVARCHAR(MAX);
 
 IF @table_name NOT IN (
     SELECT name FROM sys.objects WHERE type = 'U')
@@ -1941,9 +1949,10 @@ BEGIN
     RETURN;
 END
 
-EXEC sp_executesql
-    N'SELECT TOP 100 * FROM ' + QUOTENAME(@table_name),  -- QUOTENAME escapes safely
-    N'';
+SET @sql = N'SELECT TOP 100 * FROM ' + QUOTENAME(@table_name);
+EXEC sys.sp_executesql @sql;
+-- QUOTENAME only protects identifiers such as table or column names.
+-- Values still belong in typed parameters, not concatenated into @sql.
 ```
 
 ---
@@ -1989,6 +1998,9 @@ FROM   sys.master_files
 WHERE  database_id = DB_ID('appdb')
 ORDER BY type_desc, name;
 ```
+
+On Azure SQL Database, use Azure Monitor / Intelligent Insights instead of the default trace,
+which is not exposed the same way as on boxed SQL Server.
 
 #### Recommended Fix
 
@@ -2132,6 +2144,7 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.3 | 2026 | Corrected metadata-lock troubleshooting, tightened dynamic-SQL guidance, and added Azure SQL caveats |
 | 1.2 | 2026 | Added detection SQL and fix examples for every MySQL and SQL Server anti-pattern |
 | 1.1 | 2026 | Added MySQL and SQL Server engine-specific anti-pattern guidance |
 | 1.0 | 2025 | Initial database anti-patterns documentation |

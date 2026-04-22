@@ -340,21 +340,46 @@ DO UPDATE SET config_value = EXCLUDED.config_value,
 
 #### MySQL
 
-MySQL 8.0+ supports `IF EXISTS` / `IF NOT EXISTS` in `ALTER TABLE`, but for older versions
-you must guard using `information_schema`.
+MySQL has improved `IF EXISTS` / `IF NOT EXISTS` support over time, but teams often still use
+`information_schema` plus prepared statements so the same migration can run across mixed 5.7/8.0
+fleets and older managed database versions.
 
 ```sql
--- Check whether column exists before adding (works on all MySQL versions)
-SET @col_exists = (
+-- Check whether column exists before adding (works on all supported MySQL versions)
+SET @col_exists := (
   SELECT COUNT(*) FROM information_schema.columns
   WHERE table_schema = DATABASE()
     AND table_name   = 'orders'
     AND column_name  = 'archived_at'
 );
 
--- Execute ALTER only when the column is absent
--- (wrap in a stored procedure or handle in application/migration tool)
--- ALTER TABLE orders ADD COLUMN archived_at TIMESTAMP NULL, ALGORITHM=INSTANT;
+SET @ddl := IF(
+  @col_exists = 0,
+  'ALTER TABLE orders ADD COLUMN archived_at TIMESTAMP NULL, ALGORITHM=INSTANT',
+  'SELECT ''archived_at already exists'' AS msg'
+);
+
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Idempotent index creation
+SET @idx_exists := (
+  SELECT COUNT(*) FROM information_schema.statistics
+  WHERE table_schema = DATABASE()
+    AND table_name   = 'orders'
+    AND index_name   = 'idx_orders_archived_at'
+);
+
+SET @ddl := IF(
+  @idx_exists = 0,
+  'CREATE INDEX idx_orders_archived_at ON orders(archived_at)',
+  'SELECT ''idx_orders_archived_at already exists'' AS msg'
+);
+
+PREPARE stmt FROM @ddl;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Idempotent row upsert
 INSERT INTO config (config_key, config_value)
@@ -386,39 +411,47 @@ IF NOT EXISTS (
     WHERE archived_at IS NOT NULL;
 GO
 
--- Idempotent row upsert (MERGE)
-MERGE INTO dbo.config AS target
-USING (VALUES ('feature_x', 'enabled')) AS src (config_key, config_value)
-ON target.config_key = src.config_key
-WHEN MATCHED     THEN UPDATE SET config_value = src.config_value
-WHEN NOT MATCHED THEN INSERT (config_key, config_value)
-                      VALUES (src.config_key, src.config_value);
+-- Idempotent row upsert: prefer UPDATE + INSERT for singleton writes
+BEGIN TRANSACTION;
+
+UPDATE dbo.config WITH (UPDLOCK, SERIALIZABLE)
+SET    config_value = 'enabled'
+WHERE  config_key   = 'feature_x';
+
+IF @@ROWCOUNT = 0
+BEGIN
+  INSERT INTO dbo.config (config_key, config_value)
+  VALUES ('feature_x', 'enabled');
+END
+
+COMMIT TRANSACTION;
 ```
+
+For singleton upserts in OLTP code, many teams prefer `UPDATE ... IF @@ROWCOUNT = 0 INSERT`
+over `MERGE` because `MERGE` has a longer history of concurrency and optimizer edge cases.
 
 ### Batching Large Writes
 
 Updating or deleting millions of rows in a single statement locks too many rows, bloats the
 transaction log, and blocks concurrent traffic. Use small, restart-safe batches instead.
 
-#### MySQL — loop with LIMIT
+#### MySQL — repeatable statement with LIMIT
 
 ```sql
--- Archive 1 000 rows per iteration; safe to stop and restart
-archive_loop: LOOP
-  UPDATE orders
-  SET    archived_at = updated_at
-  WHERE  status IN ('completed', 'cancelled')
-    AND  archived_at IS NULL
-  LIMIT  1000;
+-- Run this statement repeatedly from the application or migration runner
+-- until rows_updated = 0. MySQL LOOP/WHILE syntax is only valid inside
+-- stored procedures and events, not in a plain script file.
+UPDATE orders
+SET    archived_at = updated_at
+WHERE  status IN ('completed', 'cancelled')
+  AND  archived_at IS NULL
+ORDER BY id
+LIMIT  1000;
 
-  -- Exit when nothing is left to update
-  IF ROW_COUNT() = 0 THEN
-    LEAVE archive_loop;
-  END IF;
+SELECT ROW_COUNT() AS rows_updated;
 
-  -- Brief pause so replicas can catch up before the next batch
-  DO SLEEP(0.1);
-END LOOP archive_loop;
+-- Optional pause between batches so replicas and the redo log can catch up
+DO SLEEP(0.1);
 ```
 
 #### PostgreSQL — CTE with LIMIT
@@ -548,6 +581,21 @@ END
 
 COMMIT TRANSACTION;
 ```
+
+### Choosing the Right Script Shape
+
+| Situation | Preferred Shape | Why |
+|---|---|---|
+| **Small additive schema change** | Single migration with inline verification | Fast to review, easy to rollback if the engine supports transactional DDL |
+| **Large backfill on a hot table** | Expand/contract migration plus batched worker or migration runner | Keeps locks short and lets you pause or resume safely |
+| **One-off production repair** | Pre-flight `SELECT`, bounded `UPDATE` / `DELETE`, post-flight validation | Minimizes blast radius and gives operators a clear checklist |
+| **Recurring cleanup job** | Stored procedure or application job with checkpoints | Easier to monitor, retry, and alert on than a copied SQL snippet |
+| **Cross-engine product code** | Parameterized application SQL plus vendor-specific migration files | Avoids hiding dialect assumptions inside "portable" SQL that is not portable in practice |
+
+Two common mistakes:
+
+- **Using stored-procedure control flow where the deployment tool runs plain SQL scripts.** `LOOP`, `WHILE`, and `DECLARE` blocks are often client- or engine-specific.
+- **Assuming DDL behaves like DML.** PostgreSQL often rolls schema changes back cleanly; MySQL frequently auto-commits them; SQL Server behavior depends on the specific operation and batch boundaries.
 
 ### SQL Script Review Checklist
 
@@ -1433,5 +1481,6 @@ ORDER BY row_count DESC;
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.2 | 2026 | Refined script guidance with safer MySQL batching, safer SQL Server upsert guidance, and a script-shape decision table |
 | 1.1 | 2026 | Added comprehensive SQL script composition guidance and SQL Server coverage |
 | 1.0 | 2025 | Initial relational databases documentation |
