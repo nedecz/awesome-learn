@@ -20,6 +20,7 @@ A catalogue of the most common database mistakes — what they look like, why th
 - [10. Premature Sharding](#10-premature-sharding)
 - [11. Not Using Transactions](#11-not-using-transactions)
 - [12. Schema Changes Without Migration Tools](#12-schema-changes-without-migration-tools)
+- [13. MySQL and SQL Server Engine-Specific Anti-Patterns](#13-mysql-and-sql-server-engine-specific-anti-patterns)
 - [Quick Reference Checklist](#quick-reference-checklist)
 - [Next Steps](#next-steps)
 - [Version History](#version-history)
@@ -64,6 +65,7 @@ The patterns documented here represent real failures observed across production 
 | 10 | Premature Sharding | Architecture | 🟡 Medium |
 | 11 | Not Using Transactions | Data Integrity | 🔴 Critical |
 | 12 | Schema Changes Without Migration Tools | Operations | 🟠 High |
+| 13 | MySQL and SQL Server Engine-Specific Anti-Patterns | Engine-Specific | 🟠 High |
 
 ---
 
@@ -1481,6 +1483,40 @@ Phase 3: CONTRACT — remove old column (after all app instances updated)
 
 ---
 
+## 13. MySQL and SQL Server Engine-Specific Anti-Patterns
+
+Engine choice does not replace fundamentals, but it does change which mistakes are most expensive. The following anti-patterns show up repeatedly in production incidents on MySQL and SQL Server systems.
+
+### MySQL Anti-Patterns
+
+| Anti-Pattern | Why It Hurts | Better Approach |
+|---|---|---|
+| **Using MyISAM for transactional workloads** | No crash recovery, foreign keys, or row-level locking; recovery after a crash is painful and correctness is weaker. | Use InnoDB for all new OLTP tables. |
+| **Keeping legacy `utf8` or mixed collations** | Broken Unicode storage, inconsistent comparisons, and surprise index behavior across tables and services. | Standardize on `utf8mb4` plus an explicit collation from day one. |
+| **Using random UUID primary keys on hot InnoDB tables** | Because InnoDB clusters by primary key, random inserts cause page splits, fragmentation, and larger secondary indexes. | Prefer ordered keys such as `BIGINT`, ULID, or `UUID_TO_BIN(..., 1)` patterns. |
+| **Relying on statement-based replication for non-deterministic writes** | Replica drift appears when statements depend on timing, randomness, or local state. | Prefer row-based replication and GTID for modern failover setups. |
+| **Running blocking `ALTER TABLE` operations during peak traffic** | Metadata locks and full table copies can stall reads and writes long enough to create an incident. | Prove the online strategy ahead of time with `ALGORITHM`, `LOCK`, or online-schema-change tooling. |
+
+### SQL Server Anti-Patterns
+
+| Anti-Pattern | Why It Hurts | Better Approach |
+|---|---|---|
+| **Using `NOLOCK` as a default performance fix** | Dirty reads, missing rows, double reads, and broken financial/reporting results become acceptable by accident. | Fix blocking at the root; test `READ_COMMITTED_SNAPSHOT` where appropriate. |
+| **Letting implicit conversions happen between parameters and indexed columns** | The optimizer may be forced into scans, producing latency spikes that are hard to diagnose from application code alone. | Align parameter types with column types and watch execution plans for conversion warnings. |
+| **Using heaps or unstable clustered keys for busy OLTP tables** | Forwarded records, extra I/O, and constant page churn make write-heavy tables harder to scale. | Choose a stable clustered index deliberately and review it when access patterns change. |
+| **Building dynamic SQL with `EXEC()` and string concatenation** | Security risk, poor plan reuse, and fragile quoting rules. | Use `sp_executesql` with typed parameters. |
+| **Treating autogrowth as the capacity plan for the log and `tempdb`** | Growth events pause work, fragment storage, and create preventable incident noise under load. | Pre-size files, monitor growth, and review wait stats after major workload changes. |
+
+### Detection and Review Questions
+
+- Are any MySQL tables still using MyISAM, legacy `utf8`, or mixed collations?
+- Do MySQL migrations declare the expected online DDL behavior explicitly?
+- Are SQL Server services relying on `NOLOCK`, ad-hoc `EXEC()`, or mismatched parameter types?
+- Are SQL Server transaction log and `tempdb` growth events appearing in incident timelines?
+- Did the team choose the clustered/primary key strategy intentionally, or did it happen by default?
+
+---
+
 ## Quick Reference Checklist
 
 Use this checklist before releasing a new service or during quarterly audits.
@@ -1498,7 +1534,8 @@ Use this checklist before releasing a new service or during quarterly audits.
 - [ ] Every foreign key column has an index
 - [ ] Critical queries have been verified with `EXPLAIN ANALYZE`
 - [ ] No N+1 query patterns — ORM eager loading is used for list endpoints
-- [ ] Every `SELECT` has a `LIMIT` clause
+- [ ] Every `SELECT` has a `LIMIT`, `TOP`, or other explicit row-boundary strategy
+- [ ] MySQL primary keys and SQL Server clustered indexes are chosen intentionally for hot tables
 - [ ] Deep pagination uses keyset/cursor, not OFFSET
 - [ ] Database query count per request is monitored (threshold: < 10)
 
@@ -1506,7 +1543,8 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 - [ ] All multi-statement writes are wrapped in transactions
 - [ ] Auto-commit is disabled or explicitly managed
-- [ ] Financial operations use `SELECT ... FOR UPDATE` where needed
+- [ ] Financial operations use `SELECT ... FOR UPDATE` / locking reads where needed
+- [ ] SQL Server correctness-sensitive queries do not depend on `NOLOCK`
 
 ### Operations
 
@@ -1514,6 +1552,7 @@ Use this checklist before releasing a new service or during quarterly audits.
 - [ ] Pool size is tuned for the workload
 - [ ] Replication lag is monitored and alerted on (> 1s threshold)
 - [ ] Write-then-read paths route reads to primary or wait for replication
+- [ ] MySQL uses InnoDB + `utf8mb4`, and SQL Server `tempdb` / log growth are monitored
 
 ### Schema Management
 
@@ -1545,4 +1584,5 @@ Use this checklist before releasing a new service or during quarterly audits.
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.1 | 2026 | Added MySQL and SQL Server engine-specific anti-pattern guidance |
 | 1.0 | 2025 | Initial database anti-patterns documentation |

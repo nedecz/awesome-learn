@@ -44,18 +44,22 @@
    - [Migration Tools](#migration-tools)
    - [DDL Change Review Process](#ddl-change-review-process)
    - [Staging Environment Testing](#staging-environment-testing)
-9. [Performance Tuning Checklist](#performance-tuning-checklist)
+9. [Engine-Specific Best Practices](#engine-specific-best-practices)
+   - [MySQL Best Practices](#mysql-best-practices)
+   - [SQL Server Best Practices](#sql-server-best-practices)
+   - [Cross-Engine Review Checklist](#cross-engine-review-checklist)
+10. [Performance Tuning Checklist](#performance-tuning-checklist)
    - [Connection Pooling](#connection-pooling)
    - [Index Strategy](#index-strategy)
    - [Query Review](#query-review)
    - [Configuration Tuning](#configuration-tuning)
-10. [Disaster Recovery](#disaster-recovery)
+11. [Disaster Recovery](#disaster-recovery)
     - [DR Site Setup](#dr-site-setup)
     - [Cross-Region Replication](#cross-region-replication)
     - [Regular DR Drills](#regular-dr-drills)
     - [Runbook Documentation](#runbook-documentation)
-11. [Production Readiness Checklist](#production-readiness-checklist)
-12. [Version History](#version-history)
+12. [Production Readiness Checklist](#production-readiness-checklist)
+13. [Version History](#version-history)
 
 ---
 
@@ -1202,6 +1206,40 @@ psql -d staging_mydb -c "
 
 ---
 
+## Engine-Specific Best Practices
+
+Generic database advice gets you only part of the way. Production excellence also requires respecting the operational quirks of the engine you actually run.
+
+### MySQL Best Practices
+
+| Practice | Why It Matters |
+|---|---|
+| **Standardize on InnoDB and `utf8mb4`.** | InnoDB gives you transactions, crash recovery, row-level locking, and foreign keys; `utf8mb4` avoids broken Unicode handling and collation drift. |
+| **Use GTID and row-based replication where replicas or failover matter.** | GTID simplifies failover and row-based logging avoids drift from non-deterministic statements. |
+| **Choose ordered primary keys for hot OLTP tables.** | InnoDB stores data in primary-key order, so random keys increase page splits, fragmentation, and secondary-index churn. |
+| **Make online DDL explicit.** | Declare `ALGORITHM=INSTANT` / `INPLACE` and `LOCK=NONE` when supported so a migration does not silently fall back to a blocking table copy. |
+| **Monitor InnoDB internals, not just CPU and disk.** | Buffer-pool hit ratio, history-list length, deadlocks, temp tables on disk, and replication lag tell you when concurrency or cleanup is falling behind. |
+
+### SQL Server Best Practices
+
+| Practice | Why It Matters |
+|---|---|
+| **Enable Query Store and use it as the first stop for regressions.** | It preserves plan history, exposes regressions, and helps you fix plan instability without guesswork. |
+| **Design clustered indexes intentionally.** | A narrow, stable clustered key keeps nonclustered indexes smaller and reduces page churn on write-heavy tables. |
+| **Evaluate `READ_COMMITTED_SNAPSHOT` for OLTP systems.** | It often removes reader/writer blocking without resorting to unsafe `NOLOCK` habits, but it requires `tempdb` capacity planning. |
+| **Pre-size data files, transaction log files, and `tempdb`.** | Autogrowth during peak traffic introduces latency spikes and can become the real bottleneck. |
+| **Use schema-qualified, parameterized SQL.** | `dbo.orders` plus `sp_executesql` with typed parameters improves plan reuse, reduces implicit conversion bugs, and helps security. |
+
+### Cross-Engine Review Checklist
+
+- **MySQL:** all transactional tables use InnoDB, default charset/collation is explicit, and replication mode is documented.
+- **MySQL:** large table changes have a proven online strategy (`ALGORITHM=...`, `gh-ost`, or `pt-online-schema-change`).
+- **SQL Server:** Query Store is enabled, plan regressions are reviewed, and wait stats are part of incident response.
+- **SQL Server:** `tempdb` and transaction log growth are monitored, pre-sized, and reviewed after every major release.
+- **Both engines:** application queries are parameterized and connection/session settings are controlled by the application or migration tool, not by hidden client defaults.
+
+---
+
 ## Performance Tuning Checklist
 
 Performance tuning is iterative. Start with the highest-impact, lowest-effort changes and measure the result before moving to the next.
@@ -1485,7 +1523,7 @@ Use this checklist before launching a new database to production, or audit an ex
 
 - [ ] Disk growth forecasting in place (alert when <30 days to 80%)
 - [ ] Connection limits sized appropriately with pooling
-- [ ] Memory parameters tuned for hardware (`shared_buffers`, `innodb_buffer_pool_size`)
+- [ ] Memory parameters tuned for hardware (`shared_buffers`, `innodb_buffer_pool_size`, SQL Server buffer pool / `max server memory`)
 - [ ] IOPS provisioned for workload (measured, not guessed)
 
 **Maintenance:**
@@ -1493,7 +1531,7 @@ Use this checklist before launching a new database to production, or audit an ex
 - [ ] Autovacuum tuned for high-write tables (PostgreSQL)
 - [ ] Table fragmentation monitored (MySQL)
 - [ ] Unused indexes identified and removed quarterly
-- [ ] Statistics updated regularly (`ANALYZE` / histogram updates)
+- [ ] Statistics updated regularly (`ANALYZE`, histogram updates, or SQL Server auto/manual stats refresh)
 - [ ] Bloat monitoring in place (PostgreSQL)
 
 **Schema Management:**
@@ -1509,7 +1547,8 @@ Use this checklist before launching a new database to production, or audit an ex
 - [ ] Query review process established (weekly review of top queries)
 - [ ] Key tables have appropriate indexes ([04-QUERY-OPTIMIZATION.md](04-QUERY-OPTIMIZATION.md))
 - [ ] Database configuration tuned for hardware and workload
-- [ ] Slow query logging enabled with review process
+- [ ] Slow query logging / Query Store enabled with review process
+- [ ] MySQL online DDL path or SQL Server online maintenance path is defined before large schema changes
 
 **Disaster Recovery:**
 
@@ -1525,4 +1564,5 @@ Use this checklist before launching a new database to production, or audit an ex
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.1 | 2026 | Added MySQL and SQL Server engine-specific production best practices |
 | 1.0 | 2025 | Initial best practices for production documentation |

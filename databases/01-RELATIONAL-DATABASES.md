@@ -8,13 +8,14 @@
    - [Data Manipulation Language (DML)](#data-manipulation-language-dml)
    - [Data Query Language (DQL)](#data-query-language-dql)
    - [Joins](#joins)
-3. [Normalization](#normalization)
+3. [Composing Good SQL Scripts](#composing-good-sql-scripts)
+4. [Normalization](#normalization)
    - [First Normal Form (1NF)](#first-normal-form-1nf)
    - [Second Normal Form (2NF)](#second-normal-form-2nf)
    - [Third Normal Form (3NF)](#third-normal-form-3nf)
    - [Boyce-Codd Normal Form (BCNF)](#boyce-codd-normal-form-bcnf)
    - [When to Denormalize](#when-to-denormalize)
-4. [Indexing](#indexing)
+5. [Indexing](#indexing)
    - [B-Tree Indexes](#b-tree-indexes)
    - [Hash Indexes](#hash-indexes)
    - [GIN and GiST Indexes](#gin-and-gist-indexes)
@@ -22,15 +23,16 @@
    - [Covering Indexes](#covering-indexes)
    - [Partial Indexes](#partial-indexes)
    - [When to Index](#when-to-index)
-5. [Transactions](#transactions)
+6. [Transactions](#transactions)
    - [ACID Deep-Dive](#acid-deep-dive)
    - [Isolation Levels and Anomalies](#isolation-levels-and-anomalies)
    - [Write Skew and Phantoms](#write-skew-and-phantoms)
    - [Explicit Transactions](#explicit-transactions)
-6. [PostgreSQL](#postgresql)
-7. [MySQL](#mysql)
-8. [Comparison Table](#comparison-table)
-9. [Version History](#version-history)
+7. [PostgreSQL](#postgresql)
+8. [MySQL](#mysql)
+9. [SQL Server](#sql-server)
+10. [Comparison Table](#comparison-table)
+11. [Version History](#version-history)
 
 ---
 
@@ -239,6 +241,92 @@ SELECT e.name AS employee, m.name AS manager
 FROM employees e
 LEFT JOIN employees m ON e.manager_id = m.id;
 ```
+
+---
+
+## Composing Good SQL Scripts
+
+A good SQL script is predictable for the operator, safe for the database, and readable for the next engineer. Whether the script is a repeatable migration, a one-off repair, or an application query file, the quality bar is the same: make the intent obvious, make the blast radius small, and make the verification steps explicit.
+
+### Script Design Principles
+
+| Principle | What Good Looks Like | Common Failure Mode |
+|---|---|---|
+| **Deterministic** | Same input and same database state produce the same result | Non-deterministic updates, missing `ORDER BY`, hidden session settings |
+| **Idempotent** | Safe to re-run or clearly guarded against re-execution | Duplicate rows, duplicate indexes, repeated backfills |
+| **Bounded** | Every write has a precise predicate or batch boundary | `UPDATE table SET ...` without a restrictive `WHERE` clause |
+| **Observable** | Script reports what changed and how it was validated | No row counts, no post-change checks, silent failures |
+| **Vendor-aware** | Dialect-specific behavior is called out where it matters | Copying PostgreSQL syntax into MySQL or SQL Server unchanged |
+| **Reversible** | Rollback or forward-fix strategy is documented before execution | Hotfixes that cannot be safely undone |
+
+### Recommended Script Anatomy
+
+1. **State the goal and execution context first.** Name the target schema, the expected preconditions, and whether the script is intended for PostgreSQL, MySQL, SQL Server, or ANSI SQL only.
+2. **Separate DDL, data changes, and verification.** Schema changes, backfills, and validation queries should be easy to identify at a glance. Avoid mixing exploration queries into a deployment script.
+3. **Prefer idempotent guards.** Use `IF EXISTS`, `IF NOT EXISTS`, `WHERE NOT EXISTS`, or metadata checks so that retries do not corrupt state.
+4. **Control transactions deliberately.** Keep write transactions short, understand locking side effects, and remember that many MySQL DDL statements auto-commit even when wrapped in a transaction.
+5. **Make risky writes bounded.** Large repairs should run in batches, and every destructive statement should include a narrow predicate plus a pre-flight `SELECT` using the same filter.
+6. **Use precise types and stable names.** Match parameter types to column types, schema-qualify objects (`dbo.orders`, `sales.orders`), and avoid ambiguous aliases.
+7. **Make validation part of the script.** Add row-count checks, null checks, duplicate checks, or index verification queries immediately after the change.
+8. **Document rollback or forward-fix strategy.** For additive changes, rollback may mean disabling the feature and leaving the new column in place. For destructive changes, require a tested restore path first.
+
+### Dialect Notes That Change Script Design
+
+| Concern | PostgreSQL | MySQL | SQL Server |
+|---|---|---|---|
+| **Batch separator** | Standard `;` terminator | Standard `;`; `DELIMITER` only in client tools for routines | `GO` is a client-tool batch separator, not T-SQL syntax inside application queries |
+| **DDL transactions** | Most DDL is transactional | Many DDL statements cause implicit commit | Many DDL statements can participate in a transaction, but some operations and tooling batches have restrictions |
+| **Online schema change** | Often metadata-only or low-lock, but verify | Use `ALGORITHM=INSTANT/INPLACE` and `LOCK=NONE` when supported | Prefer online/rebuild options supported by the edition and operation |
+| **Parameterized execution** | Prepared statements / bind variables | Prepared statements / bind variables | Prefer `sp_executesql` with typed parameters |
+| **Return changed rows** | `RETURNING` is first-class | Feature support is narrower; often follow with explicit verification query | `OUTPUT inserted...` / `OUTPUT deleted...` |
+
+### Annotated Example: a Safe Backfill Script
+
+```sql
+-- Goal: add archived_at to orders and backfill completed rows.
+-- Preconditions: application no longer writes archived_at directly; backfill is safe to retry.
+
+-- 1) Pre-flight check: know exactly how many rows should change.
+SELECT COUNT(*) AS rows_to_archive
+FROM orders
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+
+-- 2) Apply the smallest schema change first.
+ALTER TABLE orders
+ADD COLUMN archived_at TIMESTAMP NULL;
+
+-- 3) Backfill using a bounded predicate.
+UPDATE orders
+SET archived_at = updated_at
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+
+-- 4) Validate the outcome immediately.
+SELECT COUNT(*) AS remaining_nulls
+FROM orders
+WHERE status IN ('completed', 'cancelled')
+  AND archived_at IS NULL;
+```
+
+Why this script is good:
+
+- **The pre-flight query and the update share the same predicate.** That is the easiest way to catch an accidental full-table update before it happens.
+- **The change is additive first.** Adding a nullable column is usually safer than adding a non-null column and trying to populate it in one risky step.
+- **The validation query proves completion.** You should not rely on the absence of errors as proof that the script did the right thing.
+- **The script is easy to adapt per engine.** In MySQL, validate whether the `ALTER TABLE` can use `ALGORITHM=INSTANT` or `LOCK=NONE`; in SQL Server, consider `SET XACT_ABORT ON` and batch large updates to protect the log and lock manager.
+
+### SQL Script Review Checklist
+
+Before running a script in staging or production, verify that all of the following are true:
+
+- The script declares its target database engine and any version assumptions that matter.
+- Every `UPDATE` or `DELETE` has a restrictive predicate and a matching dry-run `SELECT`.
+- Long-running changes are split into small, restart-safe batches.
+- Object names are schema-qualified and naming is consistent.
+- Application-issued SQL uses parameters instead of string interpolation.
+- The script includes verification queries, not just change statements.
+- The operator knows whether rollback means `ROLLBACK`, a compensating migration, or restore-from-backup.
 
 ---
 
@@ -899,6 +987,53 @@ ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 ---
 
+## SQL Server
+
+SQL Server is Microsoft's flagship relational database, widely used for enterprise OLTP, reporting, BI, and .NET-centric systems. Its strengths are strong tooling, mature operational features, and deep integration with the Microsoft ecosystem.
+
+### Key Features
+
+- **T-SQL:** Rich procedural SQL dialect with variables, error handling, table-valued parameters, and strong administrative tooling.
+- **Query Store:** Built-in plan history, regression detection, and plan forcing for stabilizing important workloads.
+- **Availability features:** Always On availability groups, failover clustering, log shipping, and replication options for different recovery objectives.
+- **Indexing options:** Clustered and nonclustered rowstore indexes, filtered indexes, columnstore indexes, and indexed views.
+- **Security and governance:** Row-level security, dynamic data masking, transparent data encryption, auditing, and integration with Active Directory.
+
+### Storage and Indexing Model
+
+SQL Server tables are typically organized around a **clustered index**. If you do not define one, the table may remain a heap, which is often undesirable for hot OLTP workloads because updates can create forwarded records and make lookups more expensive.
+
+**Rules of thumb:**
+
+- Choose a **narrow, stable, ever-increasing clustered key** for write-heavy OLTP tables.
+- Use **nonclustered indexes** for lookup patterns and include extra columns when you want covering behavior.
+- Use **columnstore indexes** for analytical queries and large aggregations, not as a default for transactional tables.
+- Watch for **implicit conversions** between parameters and indexed columns, because they can turn seeks into scans.
+
+### Concurrency and Isolation
+
+SQL Server defaults to **Read Committed**. In many mixed read/write systems, enabling **Read Committed Snapshot Isolation (RCSI)** is an effective way to reduce reader/writer blocking without forcing every query to use unsafe hints. Snapshot-based isolation moves older row versions into `tempdb`, so monitor version-store growth and long-running transactions.
+
+### SQL Server Operational Notes
+
+- **Enable Query Store** in production and review regressed plans before forcing hints or rewriting queries.
+- **Pre-size the transaction log and `tempdb`.** Treat autogrowth as a safety net, not a sizing strategy.
+- **Use schema-qualified names** and typed parameters so execution plans are predictable.
+- **Prefer `sp_executesql` over `EXEC()`** for dynamic SQL to get plan reuse and protection from SQL injection.
+- **Use `SET XACT_ABORT ON`** in deployment and data-fix scripts so runtime errors abort the entire transaction instead of leaving partial changes behind.
+
+```sql
+ALTER DATABASE appdb SET QUERY_STORE = ON;
+ALTER DATABASE appdb SET READ_COMMITTED_SNAPSHOT ON;
+
+EXEC sp_executesql
+    N'SELECT total_amount FROM sales.orders WHERE customer_id = @customer_id',
+    N'@customer_id BIGINT',
+    @customer_id = 42;
+```
+
+---
+
 ## Comparison Table
 
 | Feature | PostgreSQL | MySQL (InnoDB) | SQL Server |
@@ -927,4 +1062,5 @@ ALTER TABLE posts CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 | Version | Date | Changes |
 |---|---|---|
+| 1.1 | 2026 | Added comprehensive SQL script composition guidance and SQL Server coverage |
 | 1.0 | 2025 | Initial relational databases documentation |
